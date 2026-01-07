@@ -150,24 +150,28 @@ export default function Contact() {
           </div>
 
           {/* ================= WHATSAPP SUPPORT ================= */}
-          <div className="space-y-6">
-            <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-lg p-6">
-              <h3 className="text-lg font-semibold text-white mb-3">
-                💬 WhatsApp Support
-              </h3>
+<div className="space-y-6">
+  <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-lg p-6">
+    <h3 className="text-lg font-semibold text-white mb-3">
+      💬 WhatsApp Support
+    </h3>
 
-              <p className="text-gray-400 mb-2">
-                +971 545 964 747
-              </p>
+    <p className="text-gray-400 mb-2">
+      +971 545 964 747
+    </p>
 
-              <Button
-                className="mt-3 w-full bg-green-500 hover:bg-green-600 text-black font-semibold"
-                onClick={() => {
-                  window.location.href = "http://18.214.37.117:8000/whatsapp/redirect";
-                }}
-              >
-                Chat on WhatsApp
-              </Button>
+    <Button
+      className="mt-3 w-full bg-green-500 hover:bg-green-600 text-black font-semibold"
+      onClick={() => {
+        // Direct WhatsApp link - no backend redirect
+        const phoneNumber = "971545964747";
+        const message = "Hello AIFinverse, I want to connect with you.";
+        const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
+        window.open(whatsappUrl, "_blank");
+      }}
+    >
+      Chat on WhatsApp
+    </Button>
             </div>
           </div>
         </div>
