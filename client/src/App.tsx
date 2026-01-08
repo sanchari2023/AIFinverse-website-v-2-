@@ -12,7 +12,7 @@ import Landing from "./pages/Landing";
 import Login from "./pages/Login";
 import Registration from "./pages/Registration";
 import Home from "./pages/Home";
-import About from "./pages/About";
+import About from "./pages/about";
 import Signals from "./pages/Signals";
 import Live_Alerts_India from "@/pages/Live_Alerts_India";
 import Live_Alerts_US from "@/pages/Live_Alerts_US";
