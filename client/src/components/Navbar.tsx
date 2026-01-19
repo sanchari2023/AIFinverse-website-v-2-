@@ -1,30 +1,196 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useLocation } from "wouter";
+import { Lock, User } from "lucide-react";
 
 /**
  * Navbar Component
- * Design: Dark Fintech Minimalism
- * Layout: Logo (Left) | Menu (Center) | Profile + Logout (Right)
+ * Shows user's first letter after login, shows person icon before login
  */
 
 export default function Navbar() {
   const [location, setLocation] = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [userInitial, setUserInitial] = useState<string | null>(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    // Check authentication status
+    const authToken = localStorage.getItem("authToken");
+    
+    setIsLoggedIn(!!authToken);
+    
+    // Only try to get user initial if logged in
+    if (authToken) {
+      let initial = null;
+      
+      // Try multiple sources in order:
+      
+      // 1. Check userName first (from Login)
+      const userName = localStorage.getItem("userName");
+      if (userName && userName.length > 0) {
+        // Get first letter of first name
+        const firstName = userName.split(' ')[0];
+        if (firstName.length > 0) {
+          initial = firstName.charAt(0).toUpperCase();
+        }
+      }
+      
+      // 2. Check userProfile (from Registration)
+      if (!initial) {
+        const userProfile = localStorage.getItem("userProfile");
+        if (userProfile) {
+          try {
+            const parsed = JSON.parse(userProfile);
+            if (parsed.firstName && parsed.firstName.length > 0) {
+              initial = parsed.firstName.charAt(0).toUpperCase();
+            } else if (parsed.email && parsed.email.length > 0) {
+              initial = parsed.email.charAt(0).toUpperCase();
+            }
+          } catch (e) {
+            console.error("Error parsing user profile", e);
+          }
+        }
+      }
+      
+      // 3. Check userEmail as last resort
+      if (!initial) {
+        const userEmail = localStorage.getItem("userEmail");
+        if (userEmail && userEmail.length > 0) {
+          // Get first letter of email username (before @)
+          const emailUsername = userEmail.split('@')[0];
+          if (emailUsername.length > 0) {
+            initial = emailUsername.charAt(0).toUpperCase();
+          }
+        }
+      }
+      
+      // 4. If logged in but no name found, use first letter of email from auth
+      if (!initial) {
+        // Try to get email from localStorage
+        const storedEmail = localStorage.getItem("userEmail");
+        if (storedEmail) {
+          initial = storedEmail.charAt(0).toUpperCase();
+        }
+      }
+      
+      setUserInitial(initial);
+      
+      console.log("🔄 Navbar user initial check:");
+      console.log("  - isLoggedIn:", true);
+      console.log("  - userName:", localStorage.getItem("userName"));
+      console.log("  - userEmail:", localStorage.getItem("userEmail"));
+      console.log("  - userProfile:", localStorage.getItem("userProfile"));
+      console.log("  - initial set to:", initial);
+    } else {
+      // Not logged in, clear the initial
+      setUserInitial(null);
+      console.log("🔄 Navbar: User not logged in, showing person icon");
+    }
+    
+  }, [location]); // Re-run when location changes
+
+  const handleNavigation = (path: string, label: string) => {
+    if (!isLoggedIn) {
+      // If not logged in, redirect to login
+      sessionStorage.setItem('redirectAfterLogin', path);
+      setLocation("/login");
+    } else {
+      // If logged in, check if user has premium access
+      const userPlan = localStorage.getItem("userPlan");
+      const isPremiumUser = userPlan === "premium";
+      
+      if (["/live-alerts-india", "/live-alerts-us"].includes(path) && !isPremiumUser) {
+        // User is logged in but doesn't have premium, grant access
+        console.log("User logged in but no premium, granting access...");
+        localStorage.setItem("userPlan", "premium"); // Grant premium access
+        setLocation(path);
+      } else {
+        // Regular navigation
+        setLocation(path);
+      }
+    }
+  };
+
+  const handleStandardNavigation = (path: string) => {
+    setLocation(path);
+  };
 
   const navItems = [
-    { label: "Home", path: "/home" },
-    { label: "Live Alerts India", path: "/live-alerts-india" },
-    { label: "Live Alerts US", path: "/live-alerts-us" },
-    { label: "Market Insights", path: "/newsletter" },
-    { label: "Contact us", path: "/contact" },
-    { label: "About us", path: "/about" },
+    { 
+      label: "Home", 
+      path: "/home", 
+      isPremium: false 
+    },
+    { 
+      label: "Live Alerts India", 
+      path: "/live-alerts-india", 
+      isPremium: true 
+    },
+    { 
+      label: "Live Alerts US", 
+      path: "/live-alerts-us", 
+      isPremium: true 
+    },
+    { 
+      label: "Market Insights", 
+      path: "/newsletter", 
+      isPremium: false 
+    },
+    { 
+      label: "Contact us", 
+      path: "/contact", 
+      isPremium: false 
+    },
+    { 
+      label: "About us", 
+      path: "/about", 
+      isPremium: false 
+    },
   ];
 
   const handleLogout = () => {
     localStorage.removeItem("authToken");
     localStorage.removeItem("userEmail");
+    localStorage.removeItem("userProfile");
+    localStorage.removeItem("userName");
+    // DON'T remove userPlan on logout - keep premium access
+    setIsLoggedIn(false);
+    setUserInitial(null); // Clear the initial on logout
     setLocation("/");
+  };
+
+  // Helper function to render profile circle
+  const renderProfileCircle = (size: 'small' | 'large' = 'large') => {
+    const isSmall = size === 'small';
+    
+    if (isLoggedIn && userInitial) {
+      // Show first letter after login
+      return (
+        <div className={`
+          ${isSmall ? 'w-8 h-8 text-sm' : 'w-9 h-9 text-lg'}
+          rounded-full bg-gradient-to-r from-cyan-500 to-blue-500 
+          flex items-center justify-center text-white font-bold 
+          shadow-lg hover:from-cyan-600 hover:to-blue-600 
+          transition-all duration-200 hover:scale-105
+        `}>
+          {userInitial}
+        </div>
+      );
+    } else {
+      // Show person icon before login
+      return (
+        <div className={`
+          ${isSmall ? 'w-8 h-8' : 'w-9 h-9'}
+          rounded-full bg-gradient-to-r from-slate-600 to-slate-700 
+          flex items-center justify-center text-white
+          shadow-lg hover:from-slate-700 hover:to-slate-800 
+          transition-all duration-200 hover:scale-105
+        `}>
+          <User className={isSmall ? "w-4 h-4" : "w-5 h-5"} />
+        </div>
+      );
+    }
   };
 
   return (
@@ -55,7 +221,13 @@ export default function Navbar() {
             {navItems.map((item) => (
               <button
                 key={item.path}
-                onClick={() => setLocation(item.path)}
+                onClick={() => {
+                  if (item.isPremium) {
+                    handleNavigation(item.path, item.label);
+                  } else {
+                    handleStandardNavigation(item.path);
+                  }
+                }}
                 className={`px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
                   location === item.path
                     ? "bg-cyan-500/20 text-cyan-400 border-b-2 border-cyan-500"
@@ -69,24 +241,57 @@ export default function Navbar() {
 
           {/* RIGHT: Profile + Logout (Desktop) */}
           <div className="hidden md:flex items-center space-x-6">
-            <button onClick={() => setLocation("/profile")}>
-              <img
-                src="/images/profile.png"
-                alt="Profile"
-                className="w-8 h-8 rounded-full object-cover cursor-pointer"
-              />
+            {/* Profile Circle */}
+            <button 
+              onClick={() => {
+                if (isLoggedIn) {
+                  setLocation("/profile");
+                } else {
+                  setLocation("/login");
+                }
+              }}
+              className="transition-transform hover:scale-105"
+              title={isLoggedIn ? `Profile (${userInitial})` : "Login / Sign up"}
+            >
+              {renderProfileCircle('large')}
             </button>
 
-            <Button
-              onClick={handleLogout}
-              className="bg-red-600 hover:bg-red-700 text-white font-semibold px-3 py-2 rounded-lg"
-            >
-              Logout
-            </Button>
+            {isLoggedIn ? (
+              <Button
+                onClick={handleLogout}
+                className="bg-red-600 hover:bg-red-700 text-white font-semibold px-3 py-2 rounded-lg"
+              >
+                Logout
+              </Button>
+            ) : (
+              <Button
+                onClick={() => setLocation("/login")}
+                className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-semibold px-3 py-2 rounded-lg"
+              >
+                Login / Sign up
+              </Button>
+            )}
           </div>
 
-          {/* MOBILE: Hamburger */}
-          <div className="md:hidden ml-auto">
+          {/* MOBILE: Profile Circle + Hamburger */}
+          <div className="md:hidden ml-auto flex items-center space-x-4">
+            {/* Profile circle for mobile */}
+            <button 
+              onClick={() => {
+                if (isLoggedIn) {
+                  setLocation("/profile");
+                  setMobileMenuOpen(false);
+                } else {
+                  setLocation("/login");
+                }
+              }}
+              className="transition-transform hover:scale-105"
+              title={isLoggedIn ? `Profile (${userInitial})` : "Login / Sign up"}
+            >
+              {renderProfileCircle('small')}
+            </button>
+            
+            {/* Hamburger Menu Button */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="p-2 rounded-md text-gray-300 hover:text-white hover:bg-slate-800/50"
@@ -114,7 +319,11 @@ export default function Navbar() {
               <button
                 key={item.path}
                 onClick={() => {
-                  setLocation(item.path);
+                  if (item.isPremium) {
+                    handleNavigation(item.path, item.label);
+                  } else {
+                    setLocation(item.path);
+                  }
                   setMobileMenuOpen(false);
                 }}
                 className={`px-4 py-3 rounded-md text-base font-medium text-left transition-all ${
@@ -127,12 +336,54 @@ export default function Navbar() {
               </button>
             ))}
 
-            <Button
-              onClick={handleLogout}
-              className="mt-3 bg-red-600 hover:bg-red-700 text-white font-semibold py-3 rounded-lg"
+            {/* Profile Menu Item */}
+            <button
+              onClick={() => {
+                if (isLoggedIn) {
+                  setLocation("/profile");
+                } else {
+                  setLocation("/login");
+                }
+                setMobileMenuOpen(false);
+              }}
+              className={`px-4 py-3 rounded-md text-base font-medium text-left transition-all ${
+                location === "/profile" || location === "/login"
+                  ? "bg-cyan-500/20 text-cyan-400 border-l-4 border-cyan-500"
+                  : "text-gray-300 hover:text-white hover:bg-slate-800/50"
+              }`}
             >
-              Logout
-            </Button>
+              <div className="flex items-center space-x-3">
+                <div className="w-6 h-6 flex items-center justify-center">
+                  {isLoggedIn && userInitial ? (
+                    <div className="w-6 h-6 rounded-full bg-gradient-to-r from-cyan-500 to-blue-500 flex items-center justify-center text-white font-bold text-xs">
+                      {userInitial}
+                    </div>
+                  ) : (
+                    <User className="w-4 h-4 text-gray-300" />
+                  )}
+                </div>
+                <span>{isLoggedIn ? `Profile (${userInitial})` : "Login / Sign up"}</span>
+              </div>
+            </button>
+
+            {isLoggedIn ? (
+              <Button
+                onClick={handleLogout}
+                className="mt-3 bg-red-600 hover:bg-red-700 text-white font-semibold py-3 rounded-lg"
+              >
+                Logout
+              </Button>
+            ) : (
+              <Button
+                onClick={() => {
+                  setLocation("/register");
+                  setMobileMenuOpen(false);
+                }}
+                className="mt-3 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-semibold py-3 rounded-lg"
+              >
+                Register
+              </Button>
+            )}
           </div>
         </div>
       )}

@@ -25,14 +25,15 @@ export default function Profile() {
   const [activeTab, setActiveTab] = useState<TabType>("account");
   
   // Updated alert types as per requirement
-  const alertTypes = [
-    "Momentum Riders (52-week High/Low, All-Time High/Low)",
-    "Cycle Count Reversal",
-    "Mean Reversion",
-    "Contrabets",
-    "Pattern Formation",
-    "Fundamental Picks (Earnings Season focused)"
-  ];
+const alertTypes = [
+  "Momentum Riders (52-week High/Low, All-Time High/Low)",
+  "Cycle Count Reversal",
+  "Double Top - Double Bottom (Contrabets)",
+  "Topping Candle - Bottoming Candle (Contrabets)",
+  "Mean Reversion",
+  "Pattern Formation",
+  "Fundamental Picks (Earnings Season focused)"
+];
 
   const isEditingMarkets = activeTab === "manage-markets";
 

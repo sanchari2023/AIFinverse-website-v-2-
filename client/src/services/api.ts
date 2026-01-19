@@ -34,12 +34,18 @@ export const apiForm: AxiosInstance = axios.create({
 api.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     console.log(`[JSON] Making ${config.method?.toUpperCase()} request to:`, config.url);
-    
+
+    // ✅ ADD THIS BLOCK
+    const token = localStorage.getItem("authToken");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+
     const timestamp = Date.now();
     if (config.method?.toLowerCase() === 'get') {
       config.params = { ...config.params, _t: timestamp };
     }
-    
+
     return config;
   },
   (error: AxiosError) => {
@@ -47,6 +53,7 @@ api.interceptors.request.use(
     return Promise.reject(error);
   }
 );
+
 
 // Response interceptor for JSON API
 api.interceptors.response.use(

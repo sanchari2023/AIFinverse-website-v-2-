@@ -9,7 +9,7 @@ const plugins = [react(), tailwindcss(), jsxLocPlugin(), vitePluginManusRuntime(
 
 export default defineConfig({
   plugins,
-  base: '/', // ✅ ADD THIS for S3 hosting (root path)
+  base: '/',
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "client/src"),
@@ -17,9 +17,12 @@ export default defineConfig({
       "@assets": path.resolve(__dirname, "attached_assets"),
     },
   },
+  // Set envDir to root so it finds the .env file
   envDir: path.resolve(__dirname),
+  // Set root to the client folder where index.html is located
   root: path.resolve(__dirname, "client"),
   build: {
+    // Output should go to the root dist folder
     outDir: path.resolve(__dirname, "dist"),
     emptyOutDir: true,
   },
@@ -35,18 +38,14 @@ export default defineConfig({
       ".manusvm.computer",
       "localhost",
       "127.0.0.1",
-      ".aifinverse.com", // ✅ ADD YOUR DOMAIN
+      ".aifinverse.com",
     ],
-    fs: {
-      strict: true,
-      deny: ["**/.*"],
-    },
     proxy: {
       "/api": {
-        target: "https://api.aifinverse.com",
+        target: "https://api.aifinverse.com", // Point to your cloud backend
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, ""),
-        secure: false,
+        secure: true, // Set to true for HTTPS cloud endpoints
       },
     },
   },

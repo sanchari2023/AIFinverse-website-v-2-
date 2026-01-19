@@ -5,7 +5,7 @@ export default function Landing() {
   const [, setLocation] = useLocation();
 
   const handleLoginClick = () => {
-    setLocation("/login");
+    setLocation("/home");
   };
 
   return (

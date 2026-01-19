@@ -5,7 +5,7 @@ import { Route, Switch } from "wouter";
 import NotFound from "@/pages/NotFound";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
-
+import { usePremiumInterceptor } from "@/hooks/usePremiumInterceptor";
 
 // Pages
 import Landing from "./pages/Landing";
@@ -14,9 +14,6 @@ import Registration from "./pages/Registration";
 import Home from "./pages/Home";
 import About from "./pages/about";
 import Signals from "./pages/Signals";
-import Live_Alerts_India from "@/pages/Live_Alerts_India";
-import Live_Alerts_US from "@/pages/Live_Alerts_US";
-import Alerts from "./pages/Alerts";
 import Newsletter from "./pages/Newsletter";
 import Learning from "./pages/Learning";
 import RiskProfiling from "./pages/RiskProfiling";
@@ -24,41 +21,47 @@ import Affiliates from "./pages/Affiliates";
 import Contact from "./pages/Contact";
 import Profile from "./pages/profile";
 import Telegram from "./pages/telegram";
-import AlertsIndia from "./pages/alerts-india";
-import AlertsUS from "./pages/alerts-us";
+import Alerts from "./pages/Alerts";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 
+// Wrappers
+import LiveAlertsWrapper_US from "./pages/LiveAlertsWrapper_US";
+import LiveAlertsWrapper_India from "./pages/LiveAlertsWrapper_India";
 
 function Router() {
+  usePremiumInterceptor();
+
   return (
     <Switch>
-      {/* Public Pages */}
+      {/* PUBLIC */}
       <Route path="/" component={Landing} />
+      <Route path="/home" component={Home} />
       <Route path="/login" component={Login} />
       <Route path="/register" component={Registration} />
+      <Route path="/forgot-password" component={ForgotPassword} />
 
-      {/* Main Pages */}
-      <Route path="/home" component={Home} />
-      <Route path="/signals" component={Signals} />
+      {/* ✅ RESET PASSWORD (QUERY PARAM SUPPORT) */}
+      <Route path="/reset-password" component={ResetPassword} />
 
-      {/* Live Alerts */}
-      <Route path="/live-alerts-india" component={Live_Alerts_India} />
-      <Route path="/live-alerts-us" component={Live_Alerts_US} />
-
-      {/* Other Pages */}
-      <Route path="/alerts" component={Alerts} />
-      <Route path="/newsletter" component={Newsletter} />
+      <Route path="/about" component={About} />
+      <Route path="/contact" component={Contact} />
       <Route path="/learning" component={Learning} />
       <Route path="/risk-profiling" component={RiskProfiling} />
       <Route path="/affiliates" component={Affiliates} />
-      <Route path="/contact" component={Contact} />
-      <Route path="/telegram" component={Telegram} />
-      <Route path="/profile" component={Profile} />
-      <Route path="/alerts-india" component={AlertsIndia} />
-      <Route path="/alerts-us" component={AlertsUS} />
-      <Route path="/about" component={About} />
+      <Route path="/signals" component={Signals} />
+      <Route path="/newsletter" component={Newsletter} />
 
-      {/* Fallback */}
-      <Route path="/404" component={NotFound} />
+      {/* PROTECTED */}
+      <Route path="/profile" component={Profile} />
+      <Route path="/telegram" component={Telegram} />
+      <Route path="/alerts" component={Alerts} />
+
+      {/* LIVE ALERTS */}
+      <Route path="/live-alerts-india" component={LiveAlertsWrapper_India} />
+      <Route path="/live-alerts-us" component={LiveAlertsWrapper_US} />
+
+      {/* FALLBACK */}
       <Route component={NotFound} />
     </Switch>
   );

@@ -69,55 +69,7 @@ export default function Home() {
   const [refreshCounter, setRefreshCounter] = useState(0);
   const [apiUpdatedAt, setApiUpdatedAt] = useState<string>("");
 
-  // Function to fetch live news
-  const fetchLiveNews = async () => {
-    setIsLoadingNews(true);
-    setNewsError("");
-    
-    try {
-      console.log("📰 Fetching live news... Attempt #", refreshCounter + 1);
-      
-      const timestamp = Date.now();
-      const uniqueId = Math.random().toString(36).substring(7);
-      
-      const response = await api.get("/news/live", {
-        params: {
-          limit: 3,
-          _t: timestamp,
-          nocache: timestamp,
-          random: uniqueId
-        }
-      });
-      
-      if (response.data) {
-        const apiData = response.data as NewsApiResponse;
-        
-        if (apiData.news && Array.isArray(apiData.news)) {
-          // Process news to ensure URLs
-          const processedNews = apiData.news.map(news => ({
-            ...news,
-            url: validateAndGenerateUrl(news.url, news.title, news.source)
-          }));
-          
-          setLiveNews(processedNews);
-          setApiUpdatedAt(apiData.updated_at);
-          setLastFetchTime(new Date());
-          setRefreshCounter(prev => prev + 1);
-          
-        } else {
-          setNewsError("Invalid news data format");
-        }
-      } else {
-        setNewsError("Empty response from server");
-      }
-    } catch (error: any) {
-      console.error("❌ Error fetching live news:", error);
-      setNewsError("Failed to load news");
-    } finally {
-      setIsLoadingNews(false);
-    }
-  };
-
+  
   // Function to validate and generate URL
   const validateAndGenerateUrl = (url: string | undefined, title: string, source: string): string => {
     if (url && url.trim() !== "" && 
@@ -557,28 +509,17 @@ export default function Home() {
     };
   }, [timeframe]); // Re-run when timeframe changes
 
-  // Fetch data on component mount
-  useEffect(() => {
-    fetchLiveNews();
-    
-    const newsInterval = setInterval(() => {
-      fetchLiveNews();
-    }, 2 * 60 * 1000);
-    
-    return () => {
-      clearInterval(newsInterval);
-    };
-  }, []);
+ 
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950/95 via-blue-950/80 to-slate-950/95 bg-[url('/images/login.png')] bg-cover bg-center bg-fixed bg-blend-darken">
       <Navbar />
 
       <main className="pt-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         {/* HERO SECTION */}
         <section className="text-center mb-16 px-4">
           <h1 className="text-3xl md:text-5xl font-bold text-white mb-6 leading-tight">
-            Intelligent Market Analysis<br />
+            Actionable Market Intelligence<br />
             <span className="bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
               Powered by AI
             </span>
@@ -599,7 +540,7 @@ export default function Home() {
             >
               <div className="flex items-center gap-4">
                 <div className="w-14 h-14 bg-gradient-to-br from-green-500/20 to-emerald-500/20 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <span className="text-3xl">🇮🇳</span>
+                  <img src="/images/india.png" alt="India Flag" className="w-9 h-9" />
                 </div>
                 <div className="text-left">
                   <h3 className="text-white font-semibold text-lg mb-1">Live Alerts India</h3>
@@ -619,7 +560,7 @@ export default function Home() {
             >
               <div className="flex items-center gap-4">
                 <div className="w-14 h-14 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <span className="text-3xl">🇺🇸</span>
+                  <img src="/images/US.png" alt="US Flag" className="w-9 h-9" />
                 </div>
                 <div className="text-left">
                   <h3 className="text-white font-semibold text-lg mb-1">Live Alerts US</h3>
@@ -910,15 +851,19 @@ export default function Home() {
         </section>
       </main>
 
-      {/* FOOTER */}
-      <footer className="bg-slate-800 border-t border-slate-700 w-full">
-        <div className="w-full px-6 sm:px-10 lg:px-16 py-3 text-center">
+      {/* ================= FOOTER ================= */}
+      <footer className="mt-20 py-4 bg-slate-1000/50 text-center text-sm text-slate-500">
+        <div className="max-w-7xl mx-auto px-2 py-1 text-center">
+          {/* DISCLAIMER */}
+          <div className="mb-4">
+            <p className="text-sm text-red-300 font-semibold">
+              ⚠️ Disclaimer - Not Financial Advice, Do Your Own Research
+            </p>
+          </div>
+          
           <p className="text-sm text-slate-400">
-            © 2025 All rights reserved to AIFinverse{" | "}
-            <a
-              href="/privacy-policy"
-              className="text-cyan-400 hover:text-cyan-300 hover:underline ml-1"
-            >
+            © 2025 All rights reserved to AIFinverse.{" | "}
+            <a href="/privacy-policy" className="text-cyan-400 hover:text-cyan-300 hover:underline ml-1">
               Privacy Policy
             </a>
           </p>

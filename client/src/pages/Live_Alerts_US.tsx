@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { useLocation } from "wouter";
-import { Target, Plus, X, AlertTriangle, ChevronDown, ChevronUp, ExternalLink, Newspaper, BarChart, Bot, CheckCircle } from "lucide-react";
+import { Target, Plus, X, AlertTriangle, ChevronDown, ChevronUp, ExternalLink, Newspaper, CheckCircle } from "lucide-react";
 
 export default function Live_Alerts_US() {
   const [selectedAlertTypes, setSelectedAlertTypes] = useState<string[]>([]);
@@ -21,96 +21,121 @@ export default function Live_Alerts_US() {
   
   const [, setLocation] = useLocation();
 
-  // US-specific alerts with detailed information
-  const alerts = [
-    { 
-      stock: "AAPL", 
-      type: "Momentum Riders (52-week High/Low, All-Time High/Low)",
-      price: "$229.98",
-      change: "+0.04%",
-      rsi: "56.05",
-      rsiStatus: "NEUTRAL",
-      news: "https://www.cnbc.com/quotes/AAPL",
-      chart: "https://www.tradingview.com/chart/?symbol=AAPL",
-      time: "10:30 AM EST",
-      strategy: "ATH"
-    },
-    { 
-      stock: "MSFT", 
-      type: "Cycle Count Reversal",
-      price: "$415.86",
-      change: "-0.32%",
-      rsi: "48.72",
-      rsiStatus: "NEUTRAL",
-      news: "https://www.cnbc.com/quotes/MSFT",
-      chart: "https://www.tradingview.com/chart/?symbol=MSFT",
-      time: "11:15 AM EST",
-      strategy: "Cycle Count"
-    },
-    { 
-      stock: "NVDA", 
-      type: "Mean Reversion",
-      price: "$945.25",
-      change: "+1.85%",
-      rsi: "68.45",
-      rsiStatus: "OVERBOUGHT",
-      news: "https://www.cnbc.com/quotes/NVDA",
-      chart: "https://www.tradingview.com/chart/?symbol=NVDA",
-      time: "12:45 PM EST",
-      strategy: "Mean Reversion"
-    },
-    { 
-      stock: "TSLA", 
-      type: "Contrabets",
-      price: "$245.30",
-      change: "-2.14%",
-      rsi: "34.82",
-      rsiStatus: "OVERSOLD",
-      news: "https://www.cnbc.com/quotes/TSLA",
-      chart: "https://www.tradingview.com/chart/?symbol=TSLA",
-      time: "1:20 PM EST",
-      strategy: "Contrabets"
-    },
-    { 
-      stock: "AMZN", 
-      type: "Pattern Formation",
-      price: "$185.45",
-      change: "+0.92%",
-      rsi: "58.63",
-      rsiStatus: "NEUTRAL",
-      news: "https://www.cnbc.com/quotes/AMZN",
-      chart: "https://www.tradingview.com/chart/?symbol=AMZN",
-      time: "2:10 PM EST",
-      strategy: "Pattern Formation"
-    },
-    { 
-      stock: "GOOGL", 
-      type: "Fundamental Picks (Earnings Season focused)",
-      price: "$175.80",
-      change: "+0.56%",
-      rsi: "52.34",
-      rsiStatus: "NEUTRAL",
-      news: "https://www.cnbc.com/quotes/GOOGL",
-      chart: "https://www.tradingview.com/chart/?symbol=GOOGL",
-      time: "3:05 PM EST",
-      strategy: "Fundamental Picks"
-    },
-  ];
+// 🔒 Registration check (simple & safe)
+const isRegistered = !!localStorage.getItem("userProfile");
 
+useEffect(() => {
+  if (!isRegistered) {
+    alert("Please register first to access US Live Alerts");
+    setLocation("/registration");
+  }
+}, [isRegistered, setLocation]);
+
+
+ // US-specific alerts with detailed information
+const alerts = [
+  { 
+    stock: "AAPL", 
+    type: "Momentum Riders (52-week High/Low, All-Time High/Low)",
+    price: "$229.98",
+    change: "+0.04%",
+    rsi: "56.05",
+    rsiStatus: "NEUTRAL",
+    news: "https://www.cnbc.com/quotes/AAPL",
+    chart: "https://www.tradingview.com/chart/?symbol=AAPL",
+    time: "10:30 AM EST",
+    strategy: "Momentum Riders"
+  },
+  { 
+    stock: "MSFT", 
+    type: "Cycle Count Reversal",
+    price: "$415.86",
+    change: "-0.32%",
+    rsi: "48.72",
+    rsiStatus: "NEUTRAL",
+    news: "https://www.cnbc.com/quotes/MSFT",
+    chart: "https://www.tradingview.com/chart/?symbol=MSFT",
+    time: "10:45 AM EST",
+    strategy: "Cycle Count Reversal"
+  },
+  { 
+    stock: "TSLA", 
+    type: "Contrabets",
+    price: "$245.30",
+    change: "-2.14%",
+    rsi: "34.82",
+    rsiStatus: "OVERSOLD",
+    news: "https://www.cnbc.com/quotes/TSLA",
+    chart: "https://www.tradingview.com/chart/?symbol=TSLA",
+    time: "11:00 AM EST",
+    strategy: "Double Top - Double Bottom"
+  },
+  { 
+    stock: "NVDA", 
+    type: "Contrabets",
+    price: "$945.25",
+    change: "+1.85%",
+    rsi: "68.45",
+    rsiStatus: "OVERBOUGHT",
+    news: "https://www.cnbc.com/quotes/NVDA",
+    chart: "https://www.tradingview.com/chart/?symbol=NVDA",
+    time: "11:15 AM EST",
+    strategy: "Topping Candle - Bottoming Candle"
+  },
+  { 
+    stock: "META", 
+    type: "Mean Reversion",
+    price: "$485.75",
+    change: "-0.67%",
+    rsi: "72.15",
+    rsiStatus: "OVERBOUGHT",
+    news: "https://www.cnbc.com/quotes/META",
+    chart: "https://www.tradingview.com/chart/?symbol=META",
+    time: "11:30 AM EST",
+    strategy: "Mean Reversion"
+  },
+  { 
+    stock: "AMZN", 
+    type: "Pattern Formation",
+    price: "$185.45",
+    change: "+0.92%",
+    rsi: "58.63",
+    rsiStatus: "NEUTRAL",
+    news: "https://www.cnbc.com/quotes/AMZN",
+    chart: "https://www.tradingview.com/chart/?symbol=AMZN",
+    time: "11:45 AM EST",
+    strategy: "Pattern Formation"
+  },
+  { 
+    stock: "GOOGL", 
+    type: "Fundamental Picks (Earnings Season focused)",
+    price: "$175.80",
+    change: "+0.56%",
+    rsi: "52.34",
+    rsiStatus: "NEUTRAL",
+    news: "https://www.cnbc.com/quotes/GOOGL",
+    chart: "https://www.tradingview.com/chart/?symbol=GOOGL",
+    time: "12:00 PM EST",
+    strategy: "Fundamental Picks"
+  },
+];
   // Define available strategies for Add More Strategies
-  const allStrategies = [
-    "Momentum Riders (52-week High/Low, All-Time High/Low)",
-    "Cycle Count Reversal",
-    "Mean Reversion",
-    "Contrabets",
-    "Pattern Formation",
-    "Fundamental Picks (Earnings Season focused)"
-  ];
+const allStrategies = [
+  "Momentum Riders (52-week High/Low, All-Time High/Low)",
+  "Cycle Count Reversal",
+  "Double Top - Double Bottom(Contrabets)",
+  "Topping Candle - Bottoming Candle(Contrabets)",
+  "Mean Reversion",
+  "Pattern Formation",
+  "Fundamental Picks (Earnings Season focused)"
+];
 
   // Load user's market and strategies from registration
   useEffect(() => {
     const loadUserPreferences = () => {
       try {
+        console.log("=== LOADING US PREFERENCES ===");
+        
         // Load user's selected market from registration
         const savedMarket = localStorage.getItem('selectedMarket');
         setUserMarket(savedMarket);
@@ -120,14 +145,6 @@ export default function Live_Alerts_US() {
         if (savedStrategies) {
           const parsedStrategies = JSON.parse(savedStrategies);
           setUserStrategies(parsedStrategies);
-          
-          // If we have strategies from registration but no US preferences yet,
-          // use registration strategies as default
-          const savedUSPrefs = localStorage.getItem("alertPreferencesUS");
-          if (!savedUSPrefs || savedUSPrefs === '[]') {
-            setSelectedAlertTypes(parsedStrategies);
-            localStorage.setItem("alertPreferencesUS", JSON.stringify(parsedStrategies));
-          }
         }
         
         // Check if user has access to US alerts
@@ -153,7 +170,7 @@ export default function Live_Alerts_US() {
           }
         }
         
-        // If still empty and user has US market access, use registration strategies
+        // FIXED: Only use registration strategies if user has US access
         if (strategiesToSet.length === 0) {
           if (savedMarket === "US" || savedMarket === "Both") {
             if (savedStrategies) {
@@ -326,6 +343,11 @@ export default function Live_Alerts_US() {
     window.open("https://t.me/AIFinverseUSBot", "_blank");
   };
 
+  if (!isRegistered) {
+  return null;
+}
+
+
   // Show loading while data loads
   if (isLoading) {
     return (
@@ -339,7 +361,7 @@ export default function Live_Alerts_US() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-900 text-white">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950/95 via-blue-950/80 to-slate-950/95 bg-[url('/images/login.png')] bg-cover bg-center bg-fixed bg-blend-darken">
       <Navbar />
 
       {/* MARKET MISMATCH ALERT */}
@@ -382,7 +404,7 @@ export default function Live_Alerts_US() {
         <section className="text-center mb-8">
           <div className="inline-flex items-center gap-4 mb-4">
             <div className="w-16 h-16 bg-gradient-to-br from-blue-500/20 to-indigo-500/20 rounded-2xl flex items-center justify-center">
-              <span className="text-4xl">🇺🇸</span>
+              <img src="/images/US.png" alt="US Flag" className="w-10 h-10" />
             </div>
             <div className="text-left">
               <h1 className="text-3xl md:text-4xl font-bold">US Live Alerts</h1>
@@ -418,14 +440,6 @@ export default function Live_Alerts_US() {
                   <Target className="w-10 h-10 text-slate-500 mx-auto mb-3" />
                   <p className="text-sm text-slate-400">No alert types selected</p>
                   <p className="text-xs text-slate-500 mt-1">Add strategies below to get US alerts</p>
-                  <Button
-                    onClick={() => setShowAddStrategies(true)}
-                    className="mt-3 bg-cyan-500/20 text-cyan-300 hover:bg-cyan-500/30 text-xs"
-                    size="sm"
-                  >
-                    <Plus className="w-3 h-3 mr-1" />
-                    Add Strategies
-                  </Button>
                 </div>
               ) : (
                 <>
@@ -464,103 +478,104 @@ export default function Live_Alerts_US() {
             </div>
 
             {/* ADD STRATEGIES SECTION */}
-            <div className="bg-gradient-to-br from-slate-800/90 to-slate-900/90 border border-slate-700 rounded-2xl p-5 space-y-4">
-              {!showAddStrategies ? (
-                <>
-                  <Button
-                    onClick={() => setShowAddStrategies(true)}
-                    className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 text-black font-semibold hover:from-cyan-600 hover:to-blue-600 transition-all duration-300"
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add More Strategies
-                  </Button>
-                  
-                  {selectedAlertTypes.length > 0 && (
-                    <div className="mt-4 pt-4 border-t border-slate-700">
-                      <p className="text-xs text-slate-400 text-center">
-                        These strategies apply to US market only
-                      </p>
-                    </div>
-                  )}
-                </>
-              ) : (
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h3 className="font-semibold text-lg">Add New Strategies</h3>
-                    <button
-                      onClick={() => setShowAddStrategies(false)}
-                      className="text-sm text-slate-400 hover:text-white transition"
-                    >
-                      ← Back
-                    </button>
+<div className="bg-gradient-to-br from-slate-800/90 to-slate-900/90 border border-slate-700 rounded-2xl p-5 space-y-4">
+  {!showAddStrategies ? (
+    <>
+      <Button
+        onClick={() => setShowAddStrategies(true)}
+        className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 text-black font-semibold hover:from-cyan-600 hover:to-blue-600 transition-all duration-300"
+      >
+        <Plus className="w-4 h-4 mr-2" />
+        Add More Strategies
+      </Button>
+      
+      {selectedAlertTypes.length > 0 && (
+        <div className="mt-4 pt-4 border-t border-slate-700">
+          <p className="text-xs text-slate-400 text-center">
+            These strategies apply to US market only
+          </p>
+        </div>
+      )}
+    </>
+  ) : (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h3 className="font-semibold text-lg">Add New Strategies</h3>
+        <button
+          onClick={() => setShowAddStrategies(false)}
+          className="text-sm text-slate-400 hover:text-white transition"
+        >
+          ← Back
+        </button>
+      </div>
+      
+      {availableStrategies.length > 0 ? (
+        <>
+          <div className="space-y-2 max-h-40 overflow-y-auto">
+            {availableStrategies.map((strategy) => (
+              <div
+                key={strategy}
+                onClick={() => toggleNewStrategy(strategy)}
+                className={`p-3 rounded-lg cursor-pointer transition-all ${
+                  selectedNewStrategies.includes(strategy)
+                    ? "bg-cyan-500/20 border border-cyan-500/40"
+                    : "bg-slate-700/50 hover:bg-slate-700"
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  {/* Consistent checkbox size */}
+                  <div className={`w-5 h-5 rounded border flex items-center justify-center flex-shrink-0 ${
+                    selectedNewStrategies.includes(strategy)
+                      ? "border-cyan-500 bg-cyan-500"
+                      : "border-slate-500"
+                  }`}>
+                    {selectedNewStrategies.includes(strategy) && (
+                      <div className="w-2 h-2 bg-white rounded-sm" />
+                    )}
                   </div>
-                  
-                  {availableStrategies.length > 0 ? (
-                    <>
-                      <div className="space-y-2 max-h-40 overflow-y-auto">
-                        {availableStrategies.map((strategy) => (
-                          <div
-                            key={strategy}
-                            onClick={() => toggleNewStrategy(strategy)}
-                            className={`p-3 rounded-lg cursor-pointer transition-all ${
-                              selectedNewStrategies.includes(strategy)
-                                ? "bg-cyan-500/20 border border-cyan-500/40"
-                                : "bg-slate-700/50 hover:bg-slate-700"
-                            }`}
-                          >
-                            <div className="flex items-center gap-3">
-                              <div className={`w-5 h-5 rounded border flex items-center justify-center ${
-                                selectedNewStrategies.includes(strategy)
-                                  ? "border-cyan-500 bg-cyan-500"
-                                  : "border-slate-500"
-                              }`}>
-                                {selectedNewStrategies.includes(strategy) && (
-                                  <div className="w-2 h-2 bg-white rounded-sm" />
-                                )}
-                              </div>
-                              <span className="text-sm font-medium">{strategy}</span>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                      
-                      <div className="flex gap-3">
-                        <Button
-                          onClick={handleAddStrategies}
-                          disabled={selectedNewStrategies.length === 0}
-                          className="flex-1 bg-gradient-to-r from-green-500 to-emerald-500 text-white text-sm hover:from-green-600 hover:to-emerald-600"
-                        >
-                          <Plus className="w-3 h-3 mr-1" />
-                          Add {selectedNewStrategies.length > 0 ? `(${selectedNewStrategies.length})` : ''}
-                        </Button>
-                        <Button
-                          onClick={() => setShowAddStrategies(false)}
-                          variant="outline"
-                          className="border-slate-600 text-slate-300 text-sm hover:bg-slate-700"
-                        >
-                          Cancel
-                        </Button>
-                      </div>
-                    </>
-                  ) : (
-                    <div className="text-center py-4">
-                      <div className="w-12 h-12 mx-auto mb-3 bg-gradient-to-br from-cyan-500/20 to-blue-500/20 rounded-full flex items-center justify-center">
-                        <CheckCircle className="w-6 h-6 text-cyan-400" />
-                      </div>
-                      <p className="text-cyan-300 text-sm font-medium">All strategies selected!</p>
-                      <p className="text-slate-400 text-xs mt-1">You're receiving alerts for all strategies</p>
-                      <Button
-                        onClick={() => setShowAddStrategies(false)}
-                        variant="outline"
-                        className="w-full mt-4 border-slate-600 text-slate-300 text-sm hover:bg-slate-700"
-                      >
-                        Back to Alerts
-                      </Button>
-                    </div>
-                  )}
+                  <span className="text-sm font-medium">{strategy}</span>
                 </div>
-              )}
-            </div>
+              </div>
+            ))}
+          </div>
+          
+          <div className="flex gap-3">
+            <Button
+              onClick={handleAddStrategies}
+              disabled={selectedNewStrategies.length === 0}
+              className="flex-1 bg-gradient-to-r from-green-500 to-emerald-500 text-white text-sm hover:from-green-600 hover:to-emerald-600"
+            >
+              <Plus className="w-3 h-3 mr-1" />
+              Add {selectedNewStrategies.length > 0 ? `(${selectedNewStrategies.length})` : ''}
+            </Button>
+            <Button
+              onClick={() => setShowAddStrategies(false)}
+              variant="outline"
+              className="border-slate-600 text-slate-300 text-sm hover:bg-slate-700"
+            >
+              Cancel
+            </Button>
+          </div>
+        </>
+      ) : (
+        <div className="text-center py-4">
+          <div className="w-12 h-12 mx-auto mb-3 bg-gradient-to-br from-cyan-500/20 to-blue-500/20 rounded-full flex items-center justify-center">
+            <CheckCircle className="w-6 h-6 text-cyan-400" />
+          </div>
+          <p className="text-cyan-300 text-sm font-medium">All strategies selected!</p>
+          <p className="text-slate-400 text-xs mt-1">You're receiving alerts for all strategies</p>
+          <Button
+            onClick={() => setShowAddStrategies(false)}
+            variant="outline"
+            className="w-full mt-4 border-slate-600 text-slate-300 text-sm hover:bg-slate-700"
+          >
+            Back to Alerts
+          </Button>
+        </div>
+      )}
+    </div>
+  )}
+</div>
 
             {/* ARCHIVED ALERTS */}
             <div className="bg-gradient-to-br from-slate-800/90 to-slate-900/90 border border-slate-700 rounded-2xl p-5">
@@ -572,9 +587,9 @@ export default function Live_Alerts_US() {
                   </span>
                 </div>
                 <div className="space-y-2">
-                  <p className="text-sm text-slate-400 bg-slate-800/50 p-2 rounded">12 Sep 2025</p>
-                  <p className="text-sm text-slate-400 bg-slate-800/50 p-2 rounded">11 Sep 2025</p>
-                  <p className="text-sm text-slate-400 bg-slate-800/50 p-2 rounded">10 Sep 2025</p>
+                  <p className="text-sm text-slate-400 bg-slate-800/50 p-2 rounded">12 Jan 2026</p>
+                  <p className="text-sm text-slate-400 bg-slate-800/50 p-2 rounded">11 Jan 2026</p>
+                  <p className="text-sm text-slate-400 bg-slate-800/50 p-2 rounded">10 Jan 2026</p>
                 </div>
               </div>
             </div>
@@ -610,15 +625,6 @@ export default function Live_Alerts_US() {
                       ? "Go to 'Add More Strategies' to get started"
                       : "Try adjusting your preferences or check back later"}
                   </p>
-                  {selectedAlertTypes.length === 0 && (
-                    <Button
-                      onClick={() => setShowAddStrategies(true)}
-                      className="mt-4 bg-cyan-500 hover:bg-cyan-600"
-                    >
-                      <Plus className="w-4 h-4 mr-2" />
-                      Add Strategies
-                    </Button>
-                  )}
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -726,10 +732,15 @@ export default function Live_Alerts_US() {
           {/* RIGHT SIDEBAR */}
           <aside className="col-span-12 md:col-span-3 space-y-6">
             {/* TELEGRAM SECTION */}
+                        
             <div className="bg-gradient-to-br from-slate-800/90 to-slate-900/90 border border-slate-700 rounded-2xl p-5">
               <div className="text-center mb-6">
                 <div className="w-16 h-16 mx-auto mb-3 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-full flex items-center justify-center">
-                  <Bot className="w-8 h-8 text-cyan-400" />
+                  <img 
+                    src="/images/telegram.png" 
+                    alt="Telegram" 
+                    className="w-10 h-10"
+                  />
                 </div>
                 <h3 className="font-bold text-lg">Telegram Alerts</h3>
                 <p className="text-sm text-slate-400 mt-1">Get instant US alerts on Telegram</p>
@@ -737,10 +748,9 @@ export default function Live_Alerts_US() {
 
               <Button
                 onClick={handleTelegramSubscribe}
-                className="w-full bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 py-6 text-lg font-bold"
+                className="w-full bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 py-6 text-lg font-bold flex items-center justify-center"
               >
-                <Bot className="w-6 h-6 mr-2" />
-                Subscribe to US Alerts
+                Subscribe to Telegram
               </Button>
 
               <p className="text-xs text-slate-500 mt-2 text-center">
@@ -836,14 +846,23 @@ export default function Live_Alerts_US() {
         </div>
       )}
 
-      {/* FOOTER */}
-      <footer className="mt-20 py-4 bg-slate-800/50 text-center text-sm text-slate-500">
-        <p>
-          © 2025 copyrights reserved to AIFinverse.{" "}
-          <a href="/privacy-policy" className="text-cyan-400 hover:underline hover:text-cyan-300">
-            Privacy Policy
-          </a>
-        </p>
+      {/* ================= FOOTER ================= */}
+      <footer className="mt-20 py-4 bg-slate-1000/50 text-center text-sm text-slate-500">
+        <div className="max-w-7xl mx-auto px-2 py-1 text-center">
+          {/* DISCLAIMER */}
+          <div className="mb-4">
+            <p className="text-sm text-red-300 font-semibold">
+              ⚠️ Disclaimer - Not Financial Advice, Do Your Own Research
+            </p>
+          </div>
+          
+          <p className="text-sm text-slate-400">
+            © 2025 All rights reserved to AIFinverse.{" | "}
+            <a href="/privacy-policy" className="text-cyan-400 hover:text-cyan-300 hover:underline ml-1">
+              Privacy Policy
+            </a>
+          </p>
+        </div>
       </footer>
 
       <style>{`

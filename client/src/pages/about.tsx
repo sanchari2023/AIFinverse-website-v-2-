@@ -8,15 +8,15 @@ export default function About() {
   const [, setLocation] = useLocation();
 
   return (
-    <div className="min-h-screen bg-slate-900 text-white">
+     <div className="min-h-screen bg-gradient-to-br from-slate-950/95 via-blue-800/80 to-slate-700/95 bg-[url('/images/login.png')] bg-cover bg-center bg-fixed bg-blend-light">
       <Navbar />
 
       <main className="pt-24 px-4 max-w-6xl mx-auto">
         {/* HERO SECTION */}
         <section className="text-center mb-16">
           <div className="inline-flex items-center gap-4 mb-6 -ml-4 md:-ml-8">
-            <div className="w-20 h-20 bg-gradient-to-br from-green-500/20 to-emerald-500/20 rounded-2xl flex items-center justify-center">
-              <Target className="w-10 h-10 text-green-400" />
+            <div className="w-20 h-20 bg-gradient-to-br from-blue-500/20 to-blue-500/20 rounded-2xl flex items-center justify-center">
+              <Target className="w-10 h-10 text-teal-400" />
             </div>
             <div className="text-left">
               <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
@@ -75,7 +75,7 @@ export default function About() {
         {/* OUR OBJECTIVE */}
         <section className="mb-16">
           <div className="flex items-center gap-3 mb-8 -ml-2">
-            <Target className="w-8 h-8 text-green-400" />
+            <Target className="w-8 h-8 text-blue-400" />
             <h2 className="text-3xl font-bold">Our Objective</h2>
           </div>
           
@@ -86,32 +86,32 @@ export default function About() {
             
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
               <div className="bg-slate-800/50 p-6 rounded-xl border border-slate-700">
-                <div className="w-12 h-12 bg-green-500/20 rounded-xl flex items-center justify-center mb-4">
-                  <Lightbulb className="w-6 h-6 text-green-400" />
+                <div className="w-12 h-12 bg-blue-500/20 rounded-xl flex items-center justify-center mb-4">
+                  <Lightbulb className="w-6 h-6 text-teal-400" />
                 </div>
                 <h3 className="text-xl font-bold mb-2">Reduce Manual Homework</h3>
                 <p className="text-slate-400 text-sm">Automate analysis and monitoring</p>
               </div>
               
               <div className="bg-slate-800/50 p-6 rounded-xl border border-slate-700">
-                <div className="w-12 h-12 bg-green-500/20 rounded-xl flex items-center justify-center mb-4">
-                  <BarChart className="w-6 h-6 text-green-400" />
+                <div className="w-12 h-12 bg-blue-500/20 rounded-xl flex items-center justify-center mb-4">
+                  <BarChart className="w-6 h-6 text-teal-400" />
                 </div>
                 <h3 className="text-xl font-bold mb-2">Expand Market Universe</h3>
                 <p className="text-slate-400 text-sm">Track thousands of stocks simultaneously</p>
               </div>
               
               <div className="bg-slate-800/50 p-6 rounded-xl border border-slate-700">
-                <div className="w-12 h-12 bg-green-500/20 rounded-xl flex items-center justify-center mb-4">
-                  <TrendingUp className="w-6 h-6 text-green-400" />
+                <div className="w-12 h-12 bg-blue-500/20 rounded-xl flex items-center justify-center mb-4">
+                  <TrendingUp className="w-6 h-6 text-teal-400" />
                 </div>
                 <h3 className="text-xl font-bold mb-2">Improve Trading Outcomes</h3>
                 <p className="text-slate-400 text-sm">Better entries, exits, and timing</p>
               </div>
               
               <div className="bg-slate-800/50 p-6 rounded-xl border border-slate-700">
-                <div className="w-12 h-12 bg-green-500/20 rounded-xl flex items-center justify-center mb-4">
-                  <CheckCircle className="w-6 h-6 text-green-400" />
+                <div className="w-12 h-12 bg-blue-500/20 rounded-xl flex items-center justify-center mb-4">
+                  <CheckCircle className="w-6 h-6 text-teal-400" />
                 </div>
                 <h3 className="text-xl font-bold mb-2">Increase Confidence</h3>
                 <p className="text-slate-400 text-sm">Data-driven decisions you can trust</p>
@@ -131,7 +131,7 @@ export default function About() {
             <div className="grid md:grid-cols-2 gap-8">
               <div>
                 <div className="flex items-center gap-3 mb-6 -ml-2">
-                  <div className="w-10 h-10 bg-green-500/20 rounded-xl flex items-center justify-center">
+                  <div className="w-10 h-10 bg-blue-500/20 rounded-xl flex items-center justify-center">
                     <span className="text-2xl">📈</span>
                   </div>
                   <h3 className="text-2xl font-bold">Massive Coverage</h3>
@@ -146,7 +146,7 @@ export default function About() {
               
               <div>
                 <div className="flex items-center gap-3 mb-6 -ml-2">
-                  <div className="w-10 h-10 bg-green-500/20 rounded-xl flex items-center justify-center">
+                  <div className="w-10 h-10 bg-blue-500/20 rounded-xl flex items-center justify-center">
                     <span className="text-2xl">🚀</span>
                   </div>
                   <h3 className="text-2xl font-bold">Market Movements</h3>
@@ -189,8 +189,8 @@ export default function About() {
             {/* FOR TRADERS */}
             <div className="bg-gradient-to-br from-slate-800/90 to-slate-900/90 border border-slate-700 rounded-2xl p-8">
               <div className="flex items-center gap-3 mb-6 -ml-2">
-                <div className="w-12 h-12 bg-green-500/20 rounded-xl flex items-center justify-center">
-                  <Users className="w-6 h-6 text-green-400" />
+                <div className="w-12 h-12 bg-blue-500/20 rounded-xl flex items-center justify-center">
+                  <Users className="w-6 h-6 text-teal-400" />
                 </div>
                 <h2 className="text-2xl font-bold">What's in It for Traders</h2>
               </div>
@@ -222,8 +222,8 @@ export default function About() {
             {/* FOR INVESTORS */}
             <div className="bg-gradient-to-br from-slate-800/90 to-slate-900/90 border border-slate-700 rounded-2xl p-8">
               <div className="flex items-center gap-3 mb-6 -ml-2">
-                <div className="w-12 h-12 bg-emerald-500/20 rounded-xl flex items-center justify-center">
-                  <TrendingUp className="w-6 h-6 text-emerald-400" />
+                <div className="w-12 h-12 bg-blue-500/20 rounded-xl flex items-center justify-center">
+                  <TrendingUp className="w-6 h-6 text-teal-400" />
                 </div>
                 <h2 className="text-2xl font-bold">What's in It for Investors</h2>
               </div>
@@ -390,14 +390,17 @@ export default function About() {
         </section>
       </main>
 
-      {/* FOOTER */}
-       <footer className="mt-20 py-4 bg-slate-800/50 text-center text-sm text-slate-500">
-        <p>
-          © 2025 copyrights reserved to AIFinverse.{" "}
-          <a href="/privacy-policy" className="text-cyan-400 hover:underline hover:text-cyan-300">
-            Privacy Policy
-          </a>
-        </p>
+     
+      {/* ================= FOOTER ================= */}
+      <footer className="bg-slate-900 border-t border-slate-800 mt-auto">
+        <div className="max-w-7xl mx-auto px-4 py-3 text-center">
+          <p className="text-sm text-slate-400">
+            © 2025 All rights reserved to AIFinverse.{" | "}
+            <a href="/privacy-policy" className="text-cyan-400 hover:text-cyan-300 hover:underline ml-1">
+              Privacy Policy
+            </a>
+          </p>
+        </div>
       </footer>
     </div>
   );

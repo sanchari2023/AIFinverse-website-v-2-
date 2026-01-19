@@ -24,95 +24,112 @@ export default function Live_Alerts_India() {
 
   const [, setLocation] = useLocation();
 
+
+// 🔒 SIMPLE PAGE LOCK – registration required
+
+
+
   // Use the custom hook for alert types
   const { alertTypes } = useUserPreferences();
 
   // India-specific alerts with detailed information
-  const alerts = [
-    { 
-      stock: "RELIANCE", 
-      type: "Momentum Riders (52-week High/Low, All-Time High/Low)",
-      price: "2,850.45",
-      change: "+1.24%",
-      rsi: "68.2",
-      rsiStatus: "OVERBOUGHT",
-      news: "https://economictimes.indiatimes.com/reliance",
-      chart: "https://in.tradingview.com/chart/?symbol=NSE%3ARELIANCE",
-      time: "10:30 AM",
-      strategy: "Momentum Riders"
-    },
-    { 
-      stock: "TCS", 
-      type: "Cycle Count Reversal",
-      price: "3,845.60",
-      change: "-0.56%",
-      rsi: "42.8",
-      rsiStatus: "NEUTRAL",
-      news: "https://economictimes.indiatimes.com/tcs",
-      chart: "https://in.tradingview.com/chart/?symbol=NSE%3ATCS",
-      time: "11:15 AM",
-      strategy: "Cycle Count Reversal"
-    },
-    { 
-      stock: "INFY", 
-      type: "Mean Reversion",
-      price: "1,645.80",
-      change: "+2.18%",
-      rsi: "72.5",
-      rsiStatus: "OVERBOUGHT",
-      news: "https://economictimes.indiatimes.com/infosys",
-      chart: "https://in.tradingview.com/chart/?symbol=NSE%3AINFY",
-      time: "12:45 PM",
-      strategy: "Mean Reversion"
-    },
-    { 
-      stock: "HDFCBANK", 
-      type: "Contrabets",
-      price: "1,725.30",
-      change: "-0.34%",
-      rsi: "35.2",
-      rsiStatus: "OVERSOLD",
-      news: "https://economictimes.indiatimes.com/hdfc-bank",
-      chart: "https://in.tradingview.com/chart/?symbol=NSE%3AHDFCBANK",
-      time: "1:20 PM",
-      strategy: "Contrabets"
-    },
-    { 
-      stock: "ICICIBANK", 
-      type: "Pattern Formation",
-      price: "1,045.75",
-      change: "+1.82%",
-      rsi: "58.6",
-      rsiStatus: "NEUTRAL",
-      news: "https://economictimes.indiatimes.com/icici-bank",
-      chart: "https://in.tradingview.com/chart/?symbol=NSE%3AICICIBANK",
-      time: "2:10 PM",
-      strategy: "Pattern Formation"
-    },
-    { 
-      stock: "SBIN", 
-      type: "Fundamental Picks (Earnings Season focused)",
-      price: "625.40",
-      change: "+0.92%",
-      rsi: "48.3",
-      rsiStatus: "NEUTRAL",
-      news: "https://economictimes.indiatimes.com/sbi",
-      chart: "https://in.tradingview.com/chart/?symbol=NSE%3ASBIN",
-      time: "3:05 PM",
-      strategy: "Fundamental Picks"
-    },
-  ];
+const alerts = [
+  { 
+    stock: "RELIANCE", 
+    type: "Momentum Riders (52-week High/Low, All-Time High/Low)",
+    price: "2,850.45",
+    change: "+1.24%",
+    rsi: "68.2",
+    rsiStatus: "OVERBOUGHT",
+    news: "https://economictimes.indiatimes.com/reliance",
+    chart: "https://in.tradingview.com/chart/?symbol=NSE%3ARELIANCE",
+    time: "10:30 AM",
+    strategy: "Momentum Riders"
+  },
+  { 
+    stock: "TCS", 
+    type: "Cycle Count Reversal",
+    price: "3,845.60",
+    change: "-0.56%",
+    rsi: "42.8",
+    rsiStatus: "NEUTRAL",
+    news: "https://economictimes.indiatimes.com/tcs",
+    chart: "https://in.tradingview.com/chart/?symbol=NSE%3ATCS",
+    time: "10:45 AM",
+    strategy: "Cycle Count Reversal"
+  },
+  {
+    stock: "HDFCBANK", 
+    type: "Contrabets",
+    price: "1,725.30",
+    change: "-0.34%",
+    rsi: "35.2",
+    rsiStatus: "OVERSOLD",
+    news: "https://economictimes.indiatimes.com/hdfc-bank",
+    chart: "https://in.tradingview.com/chart/?symbol=NSE%3AHDFCBANK",
+    time: "11:00 AM",
+    strategy: "Double Top - Double Bottom"
+  },
+  {
+    stock: "ITC", 
+    type: "Contrabets",
+    price: "2,845.50",
+    change: "-0.85%",
+    rsi: "28.7",
+    rsiStatus: "OVERSOLD",
+    news: "https://economictimes.indiatimes.com/itc",
+    chart: "https://in.tradingview.com/chart/?symbol=NSE%3AITC",
+    time: "11:15 AM",
+    strategy: "Topping Candle - Bottoming Candle"
+  },
+  { 
+    stock: "INFY", 
+    type: "Mean Reversion",
+    price: "1,645.80",
+    change: "+2.18%",
+    rsi: "72.5",
+    rsiStatus: "OVERBOUGHT",
+    news: "https://economictimes.indiatimes.com/infosys",
+    chart: "https://in.tradingview.com/chart/?symbol=NSE%3AINFY",
+    time: "11:30 AM",
+    strategy: "Mean Reversion"
+  },
+  { 
+    stock: "ICICIBANK", 
+    type: "Pattern Formation",
+    price: "1,045.75",
+    change: "+1.82%",
+    rsi: "58.6",
+    rsiStatus: "NEUTRAL",
+    news: "https://economictimes.indiatimes.com/icici-bank",
+    chart: "https://in.tradingview.com/chart/?symbol=NSE%3AICICIBANK",
+    time: "11:45 AM",
+    strategy: "Pattern Formation"
+  },
+  { 
+    stock: "SBIN", 
+    type: "Fundamental Picks (Earnings Season focused)",
+    price: "625.40",
+    change: "+0.92%",
+    rsi: "48.3",
+    rsiStatus: "NEUTRAL",
+    news: "https://economictimes.indiatimes.com/sbi",
+    chart: "https://in.tradingview.com/chart/?symbol=NSE%3ASBIN",
+    time: "12:00 PM",
+    strategy: "Fundamental Picks"
+  },
+];
 
   // Define available strategies for Add More Strategies
-  const allStrategies = [
-    "Momentum Riders (52-week High/Low, All-Time High/Low)",
-    "Cycle Count Reversal",
-    "Mean Reversion",
-    "Contrabets",
-    "Pattern Formation",
-    "Fundamental Picks (Earnings Season focused)"
-  ];
-
+const allStrategies = [
+  "Momentum Riders (52-week High/Low, All-Time High/Low)",
+  "Cycle Count Reversal",
+  "Double Top - Double Bottom(Contrabets)",
+  "Topping Candle - Bottoming Candle(Contrabets)",
+  "Mean Reversion",
+  "Pattern Formation",
+  "Fundamental Picks (Earnings Season focused)"
+];
   // Load user's market and strategies from registration
   useEffect(() => {
     const loadUserPreferences = () => {
@@ -339,6 +356,9 @@ export default function Live_Alerts_India() {
   window.open("https://t.me/AIFinverseIndbot?start=subscribe_india", "_blank");
 };
 
+
+
+
   // Show loading while data loads
   if (isLoading) {
     return (
@@ -352,7 +372,7 @@ export default function Live_Alerts_India() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-900 text-white">
+     <div className="min-h-screen bg-gradient-to-br from-slate-950/95 via-blue-950/80 to-slate-950/95 bg-[url('/images/login.png')] bg-cover bg-center bg-fixed bg-blend-darken">
       <Navbar />
 
       {/* MARKET MISMATCH ALERT */}
@@ -395,7 +415,7 @@ export default function Live_Alerts_India() {
         <section className="text-center mb-8">
           <div className="inline-flex items-center gap-4 mb-4">
             <div className="w-16 h-16 bg-gradient-to-br from-green-500/20 to-emerald-500/20 rounded-2xl flex items-center justify-center">
-              <span className="text-4xl">🇮🇳</span>
+              <img src="/public/images/india.png" alt="India Flag" className="w-10 h-10" />
             </div>
             <div className="text-left">
               <h1 className="text-3xl md:text-4xl font-bold">India Live Alerts</h1>
@@ -470,103 +490,104 @@ export default function Live_Alerts_India() {
             </div>
 
             {/* ADD STRATEGIES SECTION */}
-            <div className="bg-gradient-to-br from-slate-800/90 to-slate-900/90 border border-slate-700 rounded-2xl p-5 space-y-4">
-              {!showAddStrategies ? (
-                <>
-                  <Button
-                    onClick={() => setShowAddStrategies(true)}
-                    className="w-full bg-gradient-to-r from-cyan-500 to-green-500 text-black font-semibold hover:from-cyan-600 hover:to-green-600 transition-all duration-300"
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add More Strategies
-                  </Button>
-                  
-                  {selectedAlertTypes.length > 0 && (
-                    <div className="mt-4 pt-4 border-t border-slate-700">
-                      <p className="text-xs text-slate-400 text-center">
-                        These strategies apply to INDIA market only
-                      </p>
-                    </div>
-                  )}
-                </>
-              ) : (
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h3 className="font-semibold text-lg">Add New Strategies</h3>
-                    <button
-                      onClick={() => setShowAddStrategies(false)}
-                      className="text-sm text-slate-400 hover:text-white transition"
-                    >
-                      ← Back
-                    </button>
+<div className="bg-gradient-to-br from-slate-800/90 to-slate-900/90 border border-slate-700 rounded-2xl p-5 space-y-4">
+  {!showAddStrategies ? (
+    <>
+      <Button
+        onClick={() => setShowAddStrategies(true)}
+        className="w-full bg-gradient-to-r from-cyan-500 to-green-500 text-black font-semibold hover:from-cyan-600 hover:to-green-600 transition-all duration-300"
+      >
+        <Plus className="w-4 h-4 mr-2" />
+        Add More Strategies
+      </Button>
+      
+      {selectedAlertTypes.length > 0 && (
+        <div className="mt-4 pt-4 border-t border-slate-700">
+          <p className="text-xs text-slate-400 text-center">
+            These strategies apply to INDIA market only
+          </p>
+        </div>
+      )}
+    </>
+  ) : (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h3 className="font-semibold text-lg">Add New Strategies</h3>
+        <button
+          onClick={() => setShowAddStrategies(false)}
+          className="text-sm text-slate-400 hover:text-white transition"
+        >
+          ← Back
+        </button>
+      </div>
+      
+      {availableStrategies.length > 0 ? (
+        <>
+          <div className="space-y-2 max-h-40 overflow-y-auto">
+            {availableStrategies.map((strategy) => (
+              <div
+                key={strategy}
+                onClick={() => toggleNewStrategy(strategy)}
+                className={`p-3 rounded-lg cursor-pointer transition-all ${
+                  selectedNewStrategies.includes(strategy)
+                    ? "bg-cyan-500/20 border border-cyan-500/40"
+                    : "bg-slate-700/50 hover:bg-slate-700"
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  {/* Consistent checkbox size with flex-shrink-0 */}
+                  <div className={`w-5 h-5 rounded border flex items-center justify-center flex-shrink-0 ${
+                    selectedNewStrategies.includes(strategy)
+                      ? "border-cyan-500 bg-cyan-500"
+                      : "border-slate-500"
+                  }`}>
+                    {selectedNewStrategies.includes(strategy) && (
+                      <div className="w-2 h-2 bg-white rounded-sm" />
+                    )}
                   </div>
-                  
-                  {availableStrategies.length > 0 ? (
-                    <>
-                      <div className="space-y-2 max-h-40 overflow-y-auto">
-                        {availableStrategies.map((strategy) => (
-                          <div
-                            key={strategy}
-                            onClick={() => toggleNewStrategy(strategy)}
-                            className={`p-3 rounded-lg cursor-pointer transition-all ${
-                              selectedNewStrategies.includes(strategy)
-                                ? "bg-cyan-500/20 border border-cyan-500/40"
-                                : "bg-slate-700/50 hover:bg-slate-700"
-                            }`}
-                          >
-                            <div className="flex items-center gap-3">
-                              <div className={`w-5 h-5 rounded border flex items-center justify-center ${
-                                selectedNewStrategies.includes(strategy)
-                                  ? "border-cyan-500 bg-cyan-500"
-                                  : "border-slate-500"
-                              }`}>
-                                {selectedNewStrategies.includes(strategy) && (
-                                  <div className="w-2 h-2 bg-white rounded-sm" />
-                                )}
-                              </div>
-                              <span className="text-sm font-medium">{strategy}</span>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                      
-                      <div className="flex gap-3">
-                        <Button
-                          onClick={handleAddStrategies}
-                          disabled={selectedNewStrategies.length === 0}
-                          className="flex-1 bg-gradient-to-r from-green-500 to-emerald-500 text-white text-sm hover:from-green-600 hover:to-emerald-600"
-                        >
-                          <Plus className="w-3 h-3 mr-1" />
-                          Add {selectedNewStrategies.length > 0 ? `(${selectedNewStrategies.length})` : ''}
-                        </Button>
-                        <Button
-                          onClick={() => setShowAddStrategies(false)}
-                          variant="outline"
-                          className="border-slate-600 text-slate-300 text-sm hover:bg-slate-700"
-                        >
-                          Cancel
-                        </Button>
-                      </div>
-                    </>
-                  ) : (
-                    <div className="text-center py-4">
-                      <div className="w-12 h-12 mx-auto mb-3 bg-gradient-to-br from-cyan-500/20 to-blue-500/20 rounded-full flex items-center justify-center">
-                        <CheckCircle className="w-6 h-6 text-cyan-400" />
-                      </div>
-                      <p className="text-cyan-300 text-sm font-medium">All strategies selected!</p>
-                      <p className="text-slate-400 text-xs mt-1">You're receiving alerts for all strategies</p>
-                      <Button
-                        onClick={() => setShowAddStrategies(false)}
-                        variant="outline"
-                        className="w-full mt-4 border-slate-600 text-slate-300 text-sm hover:bg-slate-700"
-                      >
-                        Back to Alerts
-                      </Button>
-                    </div>
-                  )}
+                  <span className="text-sm font-medium">{strategy}</span>
                 </div>
-              )}
-            </div>
+              </div>
+            ))}
+          </div>
+          
+          <div className="flex gap-3">
+            <Button
+              onClick={handleAddStrategies}
+              disabled={selectedNewStrategies.length === 0}
+              className="flex-1 bg-gradient-to-r from-green-500 to-emerald-500 text-white text-sm hover:from-green-600 hover:to-emerald-600"
+            >
+              <Plus className="w-3 h-3 mr-1" />
+              Add {selectedNewStrategies.length > 0 ? `(${selectedNewStrategies.length})` : ''}
+            </Button>
+            <Button
+              onClick={() => setShowAddStrategies(false)}
+              variant="outline"
+              className="border-slate-600 text-slate-300 text-sm hover:bg-slate-700"
+            >
+              Cancel
+            </Button>
+          </div>
+        </>
+      ) : (
+        <div className="text-center py-4">
+          <div className="w-12 h-12 mx-auto mb-3 bg-gradient-to-br from-cyan-500/20 to-blue-500/20 rounded-full flex items-center justify-center">
+            <CheckCircle className="w-6 h-6 text-cyan-400" />
+          </div>
+          <p className="text-cyan-300 text-sm font-medium">All strategies selected!</p>
+          <p className="text-slate-400 text-xs mt-1">You're receiving alerts for all strategies</p>
+          <Button
+            onClick={() => setShowAddStrategies(false)}
+            variant="outline"
+            className="w-full mt-4 border-slate-600 text-slate-300 text-sm hover:bg-slate-700"
+          >
+            Back to Alerts
+          </Button>
+        </div>
+      )}
+    </div>
+  )}
+</div>
 
             {/* ARCHIVED ALERTS */}
             <div className="bg-gradient-to-br from-slate-800/90 to-slate-900/90 border border-slate-700 rounded-2xl p-5">
@@ -725,8 +746,12 @@ export default function Live_Alerts_India() {
              {/* TELEGRAM SECTION */}
 <div className="bg-gradient-to-br from-slate-800/90 to-slate-900/90 border border-slate-700 rounded-2xl p-5">
   <div className="text-center mb-6">
-    <div className="w-16 h-16 mx-auto mb-3 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-full flex items-center justify-center">
-      <Bot className="w-8 h-8 text-green-400" />
+    <div className="w-16 h-16 mx-auto mb-3 bg-gradient-to-br from-green-500/20 to-teal-500/20 rounded-full flex items-center justify-center">
+       <img 
+                    src="/images/telegram.png" 
+                    alt="Telegram" 
+                    className="w-10 h-10"
+                  />
     </div>
     <h3 className="font-bold text-lg">Telegram Alerts</h3>
     <p className="text-sm text-slate-400 mt-1">Get instant alerts on Telegram</p>
@@ -736,7 +761,6 @@ export default function Live_Alerts_India() {
     onClick={handleTelegramSubscribe}
     className="w-full bg-gradient-to-r from-green-500 to-cyan-600 hover:from-green-600 hover:to-cyan-700 py-6 text-lg font-bold"
   >
-    <Bot className="w-6 h-6 mr-2" />
     Subscribe to Telegram
   </Button>
 
@@ -833,14 +857,23 @@ export default function Live_Alerts_India() {
         </div>
       )}
 
-      {/* FOOTER */}
-      <footer className="mt-20 py-4 bg-slate-800/50 text-center text-sm text-slate-500">
-        <p>
-          © 2025 copyrights reserved to AIFinverse.{" "}
-          <a href="/privacy-policy" className="text-cyan-400 hover:underline hover:text-cyan-300">
-            Privacy Policy
-          </a>
-        </p>
+      {/* ================= FOOTER ================= */}
+      <footer className="mt-20 py-4 bg-slate-1000/50 text-center text-sm text-slate-500">
+        <div className="max-w-7xl mx-auto px-2 py-1 text-center">
+          {/* DISCLAIMER */}
+          <div className="mb-4">
+            <p className="text-sm text-red-300 font-semibold">
+              ⚠️ Disclaimer - Not Financial Advice, Do Your Own Research
+            </p>
+          </div>
+          
+          <p className="text-sm text-slate-400">
+            © 2025 All rights reserved to AIFinverse.{" | "}
+            <a href="/privacy-policy" className="text-cyan-400 hover:text-cyan-300 hover:underline ml-1">
+              Privacy Policy
+            </a>
+          </p>
+        </div>
       </footer>
 
       <style>{`

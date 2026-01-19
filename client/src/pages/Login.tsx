@@ -2,61 +2,71 @@ import { Button } from "@/components/ui/button";
 import { useLocation } from "wouter";
 import { useState } from "react";
 import { api } from "@/services/api";
-import { CheckCircle } from "lucide-react"; // Import an icon
+import { CheckCircle, Eye, EyeOff } from "lucide-react";
 
 export default function Login() {
   const [, setLocation] = useLocation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
   const [userName, setUserName] = useState("");
 
+  const validateForm = () => {
+    setError(""); // Clear previous errors
+    
+    if (!email.trim() || !password.trim()) {
+      setError("Please fill in all fields");
+      return false;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setError("Please enter a valid email address");
+      return false;
+    }
+
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters");
+      return false;
+    }
+
+    return true;
+  };
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
-    setIsLoading(true);
-    setShowWelcome(false);
-
-    // Basic validation
-    if (!email || !password) {
-      setError("Please fill in all fields");
-      setIsLoading(false);
+    
+    if (!validateForm()) {
       return;
     }
 
+    setIsLoading(true);
+    setShowWelcome(false);
+    setError("");
+
     try {
       console.log("🔄 Starting login process...");
-      console.log("📧 Email:", email);
       
-      // Login API call
       const response = await api.post("/login", {
-        email,
+        email: email.trim(),
         password,
       });
 
       const data = response.data;
       console.log("✅ Login API response:", data);
-      console.log("📊 Response status:", response.status);
 
-      // Success handling - UPDATED CONDITION
-      // Check for 200 status AND the message indicates success
       if (response.status === 200 && data.message === "Login successful") {
-        console.log("🔑 User ID received:", data.user_id);
+        // ✅ All registered users get premium access
+        const userPlan = "premium"; // Always premium for registered users
         
-        // Generate a token since API doesn't provide one
-        const token = `token_${data.user_id}_${Date.now()}`;
-        
-        localStorage.setItem("authToken", token);
-        localStorage.setItem("userEmail", email);
-        localStorage.setItem("userId", data.user_id);
-        
-        // Store user name - extract from email or use from API if available
-        let extractedUserName = email.split('@')[0]; // Get username from email
-        
-        // Check if API returns a name field and use it if available
-        if (data.name) {
+        // ✅ Extract username properly
+        let extractedUserName = email.split('@')[0];
+        if (data.username) {
+          extractedUserName = data.username;
+        } else if (data.name) {
           extractedUserName = data.name;
         } else if (data.first_name) {
           extractedUserName = data.first_name;
@@ -64,18 +74,49 @@ export default function Login() {
             extractedUserName += ` ${data.last_name}`;
           }
         }
-        
+
+        // ✅ STORE ALL USER DATA IN LOCALSTORAGE
+        localStorage.setItem("authToken", data.token || `token_${data.user_id}_${Date.now()}`);
+        localStorage.setItem("userId", data.user_id);
+        localStorage.setItem("userEmail", data.email); // Store email
+        localStorage.setItem("userPlan", userPlan); // Always premium
         localStorage.setItem("userName", extractedUserName);
-        setUserName(extractedUserName);
         
-        console.log("📦 LocalStorage set:");
-        console.log("  - userName:", localStorage.getItem("userName"));
+        // ✅ Store userProfile for compatibility with registration flow
+        const userProfile = {
+          email: data.email,
+          firstName: extractedUserName,
+          lastName: "",
+          userId: data.user_id,
+          plan: userPlan,
+          selectedMarket: localStorage.getItem("selectedMarket") || "India",
+          selectedStrategies: JSON.parse(localStorage.getItem("selectedStrategies") || "[]"),
+          token: data.user_id
+        };
+        localStorage.setItem("userProfile", JSON.stringify(userProfile));
+        
+        // ✅ Store user data in sessionStorage
+        const userData = {
+          email: email.trim(),
+          name: extractedUserName,
+          plan: userPlan,
+          loginTime: new Date().toISOString()
+        };
+        sessionStorage.setItem("userData", JSON.stringify(userData));
+
+        setUserName(extractedUserName);
         
         // Show welcome message
         setShowWelcome(true);
         setIsLoading(false);
         
-        // Redirect to home after 2 seconds
+        console.log("✅ Login successful - Data stored:", {
+          userEmail: data.email,
+          userPlan: userPlan,
+          userName: extractedUserName
+        });
+        
+        // Redirect after delay
         setTimeout(() => {
           console.log("🚀 Redirecting to /home...");
           setLocation("/home");
@@ -83,90 +124,77 @@ export default function Login() {
         
       } else {
         const errorMsg = data.message || "Login failed. Please check your credentials.";
-        console.error("❌ Login failed:", errorMsg);
         setError(errorMsg);
         setIsLoading(false);
       }
     } catch (err: any) {
       console.error("❌ Login error:", err);
 
+      let errorMessage = "An unexpected error occurred";
+      
       if (err.response) {
-        console.error("📊 Server response:", err.response.status, err.response.data);
-        
-        // Handle specific error cases
-        if (err.response.status === 401) {
-          setError("Invalid email or password.");
-        } else if (err.response.status === 422) {
-          // Parse validation errors
-          if (err.response.data.detail) {
-            const validationErrors = err.response.data.detail.map((err: any) => 
-              `${err.loc ? err.loc.join('.') : 'field'}: ${err.msg}`
-            ).join(', ');
-            setError(`Validation error: ${validationErrors}`);
-          } else {
-            setError("Invalid input. Please check your email and password.");
-          }
-        } else {
-          setError(
-            err.response.data?.message ||
-            `Server error: ${err.response.status}`
-          );
+        // Handle specific HTTP status codes
+        switch (err.response.status) {
+          case 400:
+            errorMessage = "Invalid request. Please check your input.";
+            break;
+          case 401:
+            errorMessage = "Invalid email or password.";
+            break;
+          case 403:
+            errorMessage = "Account disabled or access denied.";
+            break;
+          case 404:
+            errorMessage = "User not found.";
+            break;
+          case 422:
+            errorMessage = "Validation error. Please check your input.";
+            break;
+          case 429:
+            errorMessage = "Too many attempts. Please try again later.";
+            break;
+          case 500:
+            errorMessage = "Server error. Please try again later.";
+            break;
+          default:
+            errorMessage = err.response.data?.message || `Error: ${err.response.status}`;
         }
       } else if (err.request) {
-        console.error("🌐 Network error - no response received");
-        setError("Network error. Please check your connection.");
+        errorMessage = "Network error. Please check your connection.";
       } else {
-        console.error("⚙️ Request setup error:", err.message);
-        setError("An unexpected error occurred. Please try again.");
+        errorMessage = err.message || "An error occurred during login.";
       }
+      
+      setError(errorMessage);
       setIsLoading(false);
     }
   };
 
-  // Test function to check current state
-  const testNavigation = () => {
-    console.log("🧪 Testing navigation...");
-    console.log("Current path:", window.location.pathname);
-    console.log("Router location function:", setLocation);
-    setLocation("/home");
-  };
-
   return (
     <div className="min-h-screen flex flex-col">
-      {/* Debug button (remove in production) */}
-      <button 
-        onClick={testNavigation}
-        className="fixed top-4 right-4 z-50 bg-red-500 text-white px-3 py-1 rounded text-xs"
-      >
-        Test Nav
-      </button>
-
-      {/* ================= BACKGROUND ================= */}
+      {/* Background */}
       <div
         className="flex-1 flex items-center justify-center relative bg-cover bg-center"
         style={{ backgroundImage: "url('/images/login.png')" }}
       >
-        {/* Overlay */}
         <div className="absolute inset-0 bg-slate-900/70 z-0" />
 
         {/* Logo */}
         <img
           src="/images/icon.png"
           alt="Logo"
-          className="absolute top-6 left-6 w-50 h-50 object-contain z-20"
+          className="absolute top-6 left-6 w-60 h-60 object-contain z-20"
         />
 
-        {/* ================= WELCOME MESSAGE ================= */}
+        {/* Welcome Animation */}
         {showWelcome && (
           <div className="fixed inset-0 z-40 flex items-center justify-center bg-slate-900/90 backdrop-blur-sm">
             <div className="w-full max-w-md bg-transparent border border-cyan-500/40 rounded-2xl p-8 shadow-2xl">
               <div className="text-center">
-                {/* Success Icon */}
                 <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-full flex items-center justify-center animate-bounce">
                   <CheckCircle className="w-10 h-10 text-white" />
                 </div>
                 
-                {/* Welcome Message */}
                 <h1 className="text-3xl font-bold text-white mb-3">
                   Welcome Back!
                 </h1>
@@ -180,16 +208,14 @@ export default function Login() {
                   </p>
                 </div>
                 
-                {/* Redirecting Message */}
                 <div className="space-y-4">
                   <div className="flex items-center justify-center gap-2 text-slate-300">
                     <div className="w-2 h-2 bg-cyan-500 rounded-full animate-pulse"></div>
                     <div className="w-2 h-2 bg-cyan-500 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
                     <div className="w-2 h-2 bg-cyan-500 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
-                    <span className="ml-2">Redirecting to dashboard...</span>
+                    <span className="ml-2">Redirecting to home...</span>
                   </div>
                   
-                  {/* Progress Bar */}
                   <div className="w-full bg-slate-700 h-1.5 rounded-full overflow-hidden">
                     <div className="h-full bg-gradient-to-r from-cyan-500 to-blue-500 w-full rounded-full animate-progress"></div>
                   </div>
@@ -199,10 +225,9 @@ export default function Login() {
           </div>
         )}
 
-        {/* ================= LOGIN CARD ================= */}
+        {/* Login Card */}
         <div className="w-full max-w-md z-30">
           <div className="bg-transparent border border-slate-500/40 rounded-xl p-6 sm:p-8 shadow-2xl">
-            {/* Header */}
             <div className="text-center mb-8">
               <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2">
                 Welcome Back
@@ -212,7 +237,6 @@ export default function Login() {
               </p>
             </div>
 
-            {/* Form */}
             <form onSubmit={handleLogin} className="space-y-5">
               {/* Email */}
               <div>
@@ -223,28 +247,48 @@ export default function Login() {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && !isLoading && handleLogin(e)}
                   placeholder="you@example.com"
-                  className="w-full px-4 py-2 bg-slate-700/50 border border-slate-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500"
+                  className="w-full px-4 py-3 bg-slate-700/50 border border-slate-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/30 transition-all"
+                  autoComplete="email"
+                  disabled={isLoading}
                 />
               </div>
 
-              {/* Password */}
+              {/* Password with show/hide */}
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
                   Password
                 </label>
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="w-full px-4 py-2 bg-slate-700/50 border border-slate-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500"
-                />
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && !isLoading && handleLogin(e)}
+                    placeholder="••••••••"
+                    className="w-full px-4 py-3 bg-slate-700/50 border border-slate-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/30 pr-12 transition-all"
+                    autoComplete="current-password"
+                    disabled={isLoading}
+                  />
+                  <button
+                    type="button"
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-300"
+                    onClick={() => setShowPassword(!showPassword)}
+                    disabled={isLoading}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="w-5 h-5" />
+                    ) : (
+                      <Eye className="w-5 h-5" />
+                    )}
+                  </button>
+                </div>
               </div>
 
               {/* Error Message */}
               {error && (
-                <div className="p-3 bg-red-500/20 border border-red-500/50 rounded-lg text-red-300 text-sm">
+                <div className="p-3 bg-red-500/20 border border-red-500/50 rounded-lg text-red-300 text-sm animate-fade-in">
                   {error}
                 </div>
               )}
@@ -253,19 +297,38 @@ export default function Login() {
               <Button
                 type="submit"
                 disabled={isLoading}
-                className="w-full bg-cyan-500 hover:bg-cyan-600 text-black font-semibold py-2 rounded-lg disabled:opacity-50"
+                className="w-full bg-cyan-500 hover:bg-cyan-600 text-black font-semibold py-3 rounded-lg disabled:opacity-50 transition-all hover:scale-[1.02] active:scale-[0.98]"
               >
-                {isLoading ? "Signing in..." : "Sign In"}
+                {isLoading ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    Signing in...
+                  </span>
+                ) : (
+                  "Sign In"
+                )}
               </Button>
             </form>
+
+            {/* Forgot Password */}
+            <div className="mt-4 text-center">
+              <button
+                type="button"
+                onClick={() => setLocation("/forgot-password")}
+                className="text-sm text-cyan-400 hover:text-cyan-300 hover:underline transition-colors"
+                disabled={isLoading}
+              >
+                Forgot your password?
+              </button>
+            </div>
 
             {/* Register */}
             <div className="mt-6 text-center text-sm text-gray-400">
               <p>
                 Don&apos;t have an account?{" "}
                 <span
-                  onClick={() => setLocation("/register")}
-                  className="text-cyan-400 hover:text-cyan-300 cursor-pointer font-medium"
+                  onClick={() => !isLoading && setLocation("/register")}
+                  className={`${isLoading ? 'text-gray-500 cursor-not-allowed' : 'text-cyan-400 hover:text-cyan-300 cursor-pointer'} font-medium`}
                 >
                   Sign up
                 </span>
@@ -275,7 +338,7 @@ export default function Login() {
         </div>
       </div>
 
-      {/* ================= FOOTER ================= */}
+      {/* Footer */}
       <footer className="bg-slate-900 border-t border-slate-800 mt-auto">
         <div className="max-w-7xl mx-auto px-4 py-3 text-center">
           <p className="text-sm text-slate-400">
@@ -290,14 +353,21 @@ export default function Login() {
         </div>
       </footer>
 
-      {/* Add animation styles */}
+      {/* Animation styles */}
       <style>{`
         @keyframes progress {
           0% { transform: translateX(-100%); }
           100% { transform: translateX(0%); }
         }
+        @keyframes fade-in {
+          from { opacity: 0; transform: translateY(-10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
         .animate-progress {
           animation: progress 2s ease-in-out;
+        }
+        .animate-fade-in {
+          animation: fade-in 0.3s ease-out;
         }
       `}</style>
     </div>

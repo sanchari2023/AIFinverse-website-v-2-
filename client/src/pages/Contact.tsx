@@ -50,7 +50,7 @@ export default function Contact() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950/95 via-blue-950/80 to-slate-950/95 bg-[url('/images/login.png')] bg-cover bg-center bg-fixed bg-blend-darken">
       <Navbar />
 
       <main className="pt-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
@@ -177,15 +177,13 @@ export default function Contact() {
         </div>
       </main>
 
+     
       {/* ================= FOOTER ================= */}
-      <footer className="bg-slate-800 border-t border-slate-800 mt-auto">
+      <footer className="bg-slate-900 border-t border-slate-800 mt-auto">
         <div className="max-w-7xl mx-auto px-4 py-3 text-center">
           <p className="text-sm text-slate-400">
             © 2025 All rights reserved to AIFinverse.{" | "}
-            <a
-              href="/privacy-policy"
-              className="text-cyan-400 hover:text-cyan-300 hover:underline ml-1"
-            >
+            <a href="/privacy-policy" className="text-cyan-400 hover:text-cyan-300 hover:underline ml-1">
               Privacy Policy
             </a>
           </p>

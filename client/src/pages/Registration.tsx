@@ -3,16 +3,49 @@ import { Button } from "@/components/ui/button";
 import Navbar from "@/components/Navbar";
 import { useLocation } from "wouter";
 import { api } from "@/services/api";
-import { CheckCircle } from "lucide-react";
+import { CheckCircle, X, AlertCircle } from "lucide-react";
 
 const alertTypes = [
   "Momentum Riders (52-week High/Low, All-Time High/Low)",
-  "Cycle Count Reversal", 
+  "Cycle Count Reversal",
+  "Double Top - Double Bottom (Contrabets)",
+  "Topping Candle - Bottoming Candle (Contrabets)",
   "Mean Reversion",
-  "Contrabets",
   "Pattern Formation",
   "Fundamental Picks (Earnings Season focused)"
 ];
+
+// Replace the strategyDescriptions with this structure
+const strategyInfo: Record<string, { description: string; frequency: string }> = {
+  "Momentum Riders (52-week High/Low, All-Time High/Low)": {
+    description: "For traders who love to trade stocks at 52 week / all time highs or lows. These alerts come without any buy/sell levels.",
+    frequency: "High frequency in trending markets"
+  },
+  "Cycle Count Reversal": {
+    description: "High probability setups based on 10-year backtesting with suggestive targets for both long and short side.",
+    frequency: "Less frequent (1-3 alerts/week)"
+  },
+  "Double Top - Double Bottom (Contrabets)": {
+    description: "Identifies retesting of price levels leading to short-term reversals and trading ranges.",
+    frequency: "High in ranging markets"
+  },
+  "Topping Candle - Bottoming Candle (Contrabets)": {
+    description: "Technical identification of trend reversal points at tops and bottoms.",
+    frequency: "High during trend changes"
+  },
+  "Mean Reversion": {
+    description: "Alerts when stocks deviate significantly from averages and are likely to revert.",
+    frequency: "Moderate (2-5 alerts/week)"
+  },
+  "Pattern Formation": {
+    description: "Identifies chart patterns like channels, head & shoulders for significant moves.",
+    frequency: "Low to moderate"
+  },
+  "Fundamental Picks (Earnings Season focused)": {
+    description: "Earnings season opportunities with fundamental analysis for growth stocks.",
+    frequency: "Seasonal (high during earnings)"
+  }
+};
 
 const marketIcons: Record<string, string> = {
   India: "🇮🇳",
@@ -34,6 +67,74 @@ interface CountrySuggestion {
   flag: string;
 }
 
+// Terms & Conditions content
+const termsAndConditions = [
+  {
+    title: "1. Acceptance of Terms",
+    content: "By creating an account on AIFinverse ('Platform'), you confirm that you have read, understood, and agreed to these Terms & Conditions. If you do not agree, you must not register or use the Platform."
+  },
+  {
+    title: "2. Eligibility",
+    content: "You must be at least 18 years old to use the Platform. By signing up, you confirm that you are legally permitted to do so."
+  },
+  {
+    title: "3. Purpose of the Platform",
+    content: "AIFinverse is an information and analytics platform designed to help users monitor a broad market universe using AI-assisted systems.\n\nThe Platform:\n• Tracks stocks across Indian and US markets\n• Generates alerts based on predefined strategies and algorithms\n• Aims to reduce manual effort and improve market awareness\n\nAIFinverse does not provide investment advice."
+  },
+  {
+    title: "4. No Investment Advice or Recommendations",
+    content: "All content, alerts, insights, and outputs provided by AIFinverse are:\n• For educational and informational purposes only\n• Not intended as investment, trading, or financial advice\n• Not a recommendation to buy, sell, or hold any security\n\nMarkets are uncertain and probabilistic.\nUsers are solely responsible for their trading and investment decisions."
+  },
+  {
+    title: "5. No Brokerage or Fund Management",
+    content: "AIFinverse:\n• Is not a brokerage\n• Is not a trading firm\n• Does not execute trades\n• Does not manage, hold, or access user funds\n• Does not guarantee returns or outcomes"
+  },
+  {
+    title: "6. Use of AI and Algorithms",
+    content: "The Platform uses proprietary algorithms and AI-assisted models to identify market conditions and generate alerts.\n\nYou acknowledge that:\n• AI outputs are based on historical and real-time data patterns\n• Alerts may be delayed, incomplete, or incorrect\n• No alert implies certainty or guarantees future performance\n• AI is a decision-support tool, not a substitute for judgment."
+  },
+  {
+    title: "7. Alerts and User Responsibility",
+    content: "Alerts are intended to narrow focus, not force action.\n\nYou agree that:\n• You will independently evaluate any alert before acting\n• You understand that some strategies may be inactive during certain market conditions\n• Absence of alerts does not imply absence of risk or opportunity"
+  },
+  {
+    title: "8. Account Responsibility",
+    content: "You are responsible for:\n• Maintaining accurate account information\n• Securing your login credentials\n• All activity conducted under your account\n\nAIFinverse reserves the right to suspend or terminate accounts that misuse the Platform or violate these Terms."
+  },
+  {
+    title: "9. Intellectual Property",
+    content: "All platform content, algorithms, alerts, data structures, branding, and software are the intellectual property of AIFinverse.\n\nUsers may not:\n• Copy, redistribute, or resell Platform content\n• Present alerts or outputs as guaranteed signals\n• Reverse engineer or scrape the Platform"
+  },
+  {
+    title: "10. Platform Availability",
+    content: "While we aim for continuous availability, the Platform may be temporarily unavailable due to maintenance, data provider issues, or technical limitations.\n\nAIFinverse is not liable for losses arising from service interruptions or delayed alerts."
+  },
+  {
+    title: "11. Limitation of Liability",
+    content: "To the maximum extent permitted by law:\n• AIFinverse shall not be liable for any trading losses, financial losses, or missed opportunities\n• Use of the Platform is entirely at the user's own risk"
+  },
+  {
+    title: "12. User Conduct",
+    content: "Users agree to:\n• Use the Platform lawfully\n• Provide constructive feedback\n• Respect the collaborative learning environment\n\nAbuse, manipulation, or misrepresentation of Platform outputs may result in account termination."
+  },
+  {
+    title: "13. Modifications",
+    content: "AIFinverse may update these Terms as the Platform evolves. Continued use after updates constitutes acceptance of the revised Terms."
+  },
+  {
+    title: "14. Termination",
+    content: "Access may be suspended or terminated at any time for violations of these Terms or misuse of the Platform."
+  },
+  {
+    title: "15. Governing Law",
+    content: "These Terms shall be governed by applicable laws, without regard to conflict-of-law principles."
+  },
+  {
+    title: "16. Contact",
+    content: "For questions or concerns regarding these Terms, users may contact AIFinverse through the official channels provided on the Platform."
+  }
+];
+
 const Registration = () => {
   const [step, setStep] = useState<1 | 2>(1);
   const [, navigate] = useLocation();
@@ -49,6 +150,7 @@ const Registration = () => {
 
   const [market, setMarket] = useState<string | null>(null);
   const [strategies, setStrategies] = useState<string[]>([]);
+  const [hoveredStrategy, setHoveredStrategy] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -57,10 +159,17 @@ const Registration = () => {
   const [isLoadingCountries, setIsLoadingCountries] = useState(false);
   const [registrationToken, setRegistrationToken] = useState<string | null>(null);
   const [apiError, setApiError] = useState<string>("");
+  const [userDataFromAPI, setUserDataFromAPI] = useState<any>(null);
+  const [userId, setUserId] = useState<string | null>(null);
   
   // New state for welcome message
   const [showWelcome, setShowWelcome] = useState(false);
   const [userName, setUserName] = useState("");
+
+  // Terms & Conditions state
+  const [showTermsModal, setShowTermsModal] = useState(false);
+  const [hasAgreedToTerms, setHasAgreedToTerms] = useState(false);
+  const [termsError, setTermsError] = useState("");
 
   // Validation helpers
   const isValidName = (name: string) => /^[A-Za-z]{2,}$/.test(name.trim());
@@ -258,94 +367,93 @@ const Registration = () => {
 
     setIsSubmitting(true);
     
-    // Try different payload formats to find what the API expects
-    const payloadsToTry = [
-      // Try snake_case (most common for Python backends)
-      {
-        first_name: form.firstName.trim(),
-        last_name: form.lastName.trim(),
-        email: form.email.trim().toLowerCase(),
-        country: form.country.trim(),
-        password: form.password,
-        confirm_password: form.confirmPassword,
-      },
-      // Try camelCase
-      {
-        firstName: form.firstName.trim(),
-        lastName: form.lastName.trim(),
-        email: form.email.trim().toLowerCase(),
-        country: form.country.trim(),
-        password: form.password,
-        confirmPassword: form.confirmPassword,
-      },
-      // Try with username field
-      {
-        username: form.email.trim().toLowerCase(),
-        first_name: form.firstName.trim(),
-        last_name: form.lastName.trim(),
-        email: form.email.trim().toLowerCase(),
-        country: form.country.trim(),
-        password: form.password,
-      },
-      // Minimal required fields
-      {
-        email: form.email.trim().toLowerCase(),
-        password: form.password,
-        full_name: `${form.firstName.trim()} ${form.lastName.trim()}`,
-        country: form.country.trim(),
-      }
-    ];
+    // Create the payload in the exact format you need
+    const payload = {
+      first_name: form.firstName.trim(),
+      last_name: form.lastName.trim(),
+      email: form.email.trim().toLowerCase(),
+      country: form.country.trim(),
+      password: form.password,
+      // Add confirm_password if backend expects it
+      ...(form.confirmPassword && { confirm_password: form.confirmPassword })
+    };
 
-    let success = false;
-    let lastError = "";
+    console.log("Sending registration payload to /register:", payload);
 
-    for (let i = 0; i < payloadsToTry.length; i++) {
-      try {
-        console.log(`Trying payload format ${i + 1}:`, payloadsToTry[i]);
-        
-        const response = await api.post("/register", payloadsToTry[i]);
+    try {
+      const response = await api.post("/register", payload);
+      console.log("Registration response:", response);
 
-        const data = response.data;
+      const data = response.data;
+      
+      if (response.status === 200 || response.status === 201) {
+        // Store the complete user data from API response
+        setUserDataFromAPI(data);
         
-        if (response.status === 200 || response.status === 201) {
-          // Store the token for the next step
-          setRegistrationToken(data.token || data.id || data.user_id || `temp_${Date.now()}`);
-          setStep(2);
-          success = true;
-          break;
-        } else {
-          lastError = data.message || "Registration failed. Please try again.";
-        }
-      } catch (err: any) {
-        console.error(`Attempt ${i + 1} failed:`, err.message);
+        // Extract user_id from the response data
+        const userId = data.user_id || data.id || data.userId || data.data?.user_id;
+        setUserId(userId);
         
-        if (err.response) {
-          // Handle 422 validation errors
-          if (err.response.status === 422) {
-            lastError = parseValidationErrors(err.response.data);
-          } else {
-            lastError = err.response.data?.message || 
-                       err.response.data?.error || 
-                       `Server error: ${err.response.status}`;
+        if (userId) {
+          // 🔐 AUTO LOGIN AFTER REGISTER
+          try {
+            const loginRes = await api.post("/login", {
+              email: form.email.trim().toLowerCase(),
+              password: form.password
+            });
+
+            const token = loginRes.data.access_token;
+            
+            // Store token in state for step 2
+            setRegistrationToken(token);
+            
+            // Move to step 2
+            setStep(2);
+            
+            console.log("Auto-login successful, token saved to state:", token);
+          } catch (loginErr: any) {
+            console.error("Auto-login failed:", loginErr);
+            // Even if auto-login fails, continue to step 2
+            // User can try logging in separately later
+            setStep(2);
           }
-        } else if (err.request) {
-          lastError = "Network error. Please check your connection.";
         } else {
-          lastError = "An unexpected error occurred.";
+          console.error("No user_id found in response:", data);
+          setApiError("Registration successful but no user ID returned. Please contact support.");
         }
-        
-        // If this is the last attempt, show the error
-        if (i === payloadsToTry.length - 1) {
-          setApiError(lastError);
-        }
+      } else {
+        setApiError(data.message || "Registration failed. Please try again.");
       }
+    } catch (err: any) {
+      console.error("Registration error:", err);
+      
+      if (err.response) {
+        console.error("Error response data:", err.response.data);
+        console.error("Error response status:", err.response.status);
+        
+        // Handle 422 validation errors
+        if (err.response.status === 422) {
+          const errorMessage = parseValidationErrors(err.response.data);
+          setApiError(errorMessage);
+        } else {
+          const errorData = err.response.data;
+          setApiError(
+            errorData?.message || 
+            errorData?.error || 
+            errorData?.detail || 
+            `Server error: ${err.response.status}`
+          );
+        }
+      } else if (err.request) {
+        console.error("No response received:", err.request);
+        setApiError("Network error. Please check your connection and try again.");
+      } else {
+        console.error("Request setup error:", err.message);
+        setApiError("An unexpected error occurred. Please try again.");
+      }
+    } finally {
+      setIsSubmitting(false);
     }
-
-    if (!success && !apiError) {
-      setApiError(lastError || "Registration failed with all attempted formats.");
-    }
-
-    setIsSubmitting(false);
   };
 
   // Toggle strategy selection
@@ -357,6 +465,16 @@ const Registration = () => {
     );
   };
 
+  // Handle mouse enter for strategy
+  const handleStrategyMouseEnter = (strategy: string) => {
+    setHoveredStrategy(strategy);
+  };
+
+  // Handle mouse leave for strategy
+  const handleStrategyMouseLeave = () => {
+    setHoveredStrategy(null);
+  };
+
   // Select all strategies
   const handleSelectAll = () => {
     setStrategies(prev =>
@@ -364,174 +482,262 @@ const Registration = () => {
     );
   };
 
-  // Final submission - Save preferences to API
-  const handleSubmit = async () => {
+  // Handle Complete Registration button click
+  const handleCompleteRegistrationClick = () => {
     if (isSubmitting) return;
     
-    setIsSubmitting(true);
-    setApiError("");
-    setShowWelcome(false);
+    // Check if we have the user ID from step 1
+    if (!userId) {
+      setApiError("Registration session expired. Please start over.");
+      return;
+    }
 
     // Validate step 2
     if (!market) {
       setApiError("Please select a market");
-      setIsSubmitting(false);
       return;
     }
     if (strategies.length === 0) {
       setApiError("Please select at least one strategy");
-      setIsSubmitting(false);
       return;
     }
 
-    try {
-      console.log("Saving preferences...");
+    // Show terms and conditions modal instead of submitting immediately
+    setShowTermsModal(true);
+    setTermsError("");
+  };
 
-      // Prepare preferences data - try different formats
-      const preferencesPayloads = [
-        {
+  // Handle agreement to terms
+  const handleAgreeToTerms = () => {
+    if (!hasAgreedToTerms) {
+      setTermsError("You must agree to the Terms & Conditions to continue");
+      return;
+    }
+    
+    setShowTermsModal(false);
+    // Proceed with registration submission
+    handleSubmit();
+  };
+
+  // Handle disagreement to terms
+  const handleDisagreeToTerms = () => {
+    setShowTermsModal(false);
+    setHasAgreedToTerms(false);
+    setTermsError("You must agree to the Terms & Conditions to complete registration");
+  };
+
+  // Helper function to try alternative payload formats
+  const tryAlternativePayloads = async (token: string, userId: string, userData: any, market: string, strategies: string[]) => {
+    const payloadVariations = [
+      // Format 1: Direct user data (complete JSON)
+      userData,
+      
+      // Format 2: Nested in user_data field
+      { 
+        user_data: userData,
+        market: market,
+        strategies: strategies 
+      },
+      
+      // Format 3: Only preferences with user_id
+      {
+        user_id: userId,
+        market: market,
+        strategies: strategies
+      },
+      
+      // Format 4: Complete structure as expected by backend
+      {
+        user_id: userId,
+        first_name: userData.first_name,
+        last_name: userData.last_name,
+        email: userData.email,
+        country: userData.country,
+        market: market,
+        strategies: strategies
+      }
+    ];
+
+    for (let i = 0; i < payloadVariations.length; i++) {
+      try {
+        console.log(`Trying payload format ${i + 1}:`, JSON.stringify(payloadVariations[i], null, 2));
+        
+        const response = await api.post("/register/preferences", payloadVariations[i], {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        console.log(`Success with format ${i + 1}:`, response.data);
+        return { success: true, data: response.data };
+      } catch (err: any) {
+        console.log(`Format ${i + 1} failed:`, err.response?.data || err.message);
+        if (i === payloadVariations.length - 1) {
+          return { success: false, error: err };
+        }
+      }
+    }
+    return { success: false, error: new Error("All formats failed") };
+  };
+
+  // Helper function to save data locally with the correct JSON structure
+  const saveDataLocally = (userData: any) => {
+    console.log("Saving data locally...");
+    
+    // Save the complete data to local storage in exact JSON format
+    localStorage.setItem("userData", JSON.stringify(userData, null, 2));
+    
+    // Also save simplified version for app use
+    localStorage.setItem("userProfile", JSON.stringify({
+      email: form.email,
+      firstName: form.firstName,
+      lastName: form.lastName,
+      country: form.country,
+      selectedMarket: market,
+      selectedStrategies: strategies,
+      userId: userId,
+      agreedToTerms: true,
+      termsAgreedDate: new Date().toISOString()
+    }));
+    
+    localStorage.setItem("selectedMarket", market || "");
+    localStorage.setItem("selectedStrategies", JSON.stringify(strategies));
+
+    const fullName = `${form.firstName} ${form.lastName}`;
+    localStorage.setItem("userName", fullName);
+    
+    // Store auth token if available
+    if (registrationToken) {
+      localStorage.setItem("authToken", registrationToken);
+      localStorage.setItem("userPlan", "premium"); // Grant premium access
+      localStorage.setItem("registrationComplete", "true");
+    }
+    
+    setUserName(fullName);
+    
+    setShowWelcome(true);
+    sessionStorage.setItem("firstTimeUser", "true");
+    
+    console.log("Data saved locally successfully!");
+    console.log("Local JSON structure:", JSON.stringify(userData, null, 2));
+
+     // ⭐ ADD THIS LINE ⭐
+  localStorage.setItem("registrationComplete", "true");
+  
+  setUserName(fullName);
+  setShowWelcome(true);
+  
+  console.log("Data saved locally successfully!");
+
+  };
+
+ 
+
+  // Final submission - Save preferences to API
+  const handleSubmit = async () => {
+    setIsSubmitting(true);
+    setApiError("");
+    setShowWelcome(false);
+
+    // 🔐 Check if we have the registration token (from auto-login in step 1)
+    const token = registrationToken;
+    if (!token) {
+      // Try to get token from localStorage as fallback
+      const storedToken = localStorage.getItem("authToken");
+      if (!storedToken) {
+        setApiError("Authentication token missing. Please login again.");
+        setIsSubmitting(false);
+        return;
+      }
+    }
+
+    try {
+      console.log("Saving preferences for user:", userId);
+
+      // Create the complete user object in your desired JSON format
+      const completeUserData = {
+        user_id: userId,
+        first_name: form.firstName.trim(),
+        last_name: form.lastName.trim(),
+        email: form.email.trim().toLowerCase(),
+        country: form.country.trim(),
+        created_at: new Date().toISOString(),
+        preferences: {
           market: market,
           strategies: strategies,
-          market_preferences: {
-            india: market === "India" || market === "Both" ? strategies : [],
-            us: market === "US" || market === "Both" ? strategies : [],
-            crypto: []
-          },
-          token: registrationToken,
-          email: form.email.toLowerCase()
+          updated_at: new Date().toISOString()
         },
-        {
-          selected_market: market,
-          selected_strategies: strategies,
-          token: registrationToken,
-          user_email: form.email.toLowerCase()
-        },
-        {
-          market: market.toLowerCase(),
-          alert_types: strategies,
-          preferences: {
-            markets: market === "Both" ? ["india", "us"] : [market.toLowerCase()],
-            alerts: strategies
-          }
+        terms_accepted: {
+          agreed: true,
+          accepted_date: new Date().toISOString(),
+          terms_version: "1.0"
         }
-      ];
+      };
 
-      let success = false;
-      let lastError = "";
+      console.log("Complete user data for S3:", JSON.stringify(completeUserData, null, 2));
 
-      for (let i = 0; i < preferencesPayloads.length; i++) {
-        try {
-          console.log(`Trying preferences format ${i + 1}:`, preferencesPayloads[i]);
-          const response = await api.post("/register/preference", preferencesPayloads[i]);
+      // Use the token we have (from state or localStorage)
+      const authToken = token || localStorage.getItem("authToken") || "";
+      
+      if (authToken) {
+        // Try different payload formats to find what works
+        const result = await tryAlternativePayloads(
+          authToken, 
+          userId!, 
+          completeUserData, 
+          market!, 
+          strategies
+        );
 
-          const data = response.data;
-
-          if (response.status === 200 && data.success) {
-            // Save user data locally
-            const userProfile = {
-              ...form,
-              selectedMarket: market,
-              selectedStrategies: strategies,
-              selectedMarkets: market === "Both" ? ["india", "us"] : 
-                              market === "India" ? ["india"] : ["us"],
-              marketPreferences: {
-                india: market === "India" || market === "Both" ? strategies : [],
-                us: market === "US" || market === "Both" ? strategies : [],
-                crypto: []
-              },
-              registeredAt: new Date().toISOString(),
-              updatedAt: new Date().toISOString(),
-              token: data.token || registrationToken
-            };
-
-            // Save user profile locally
-            localStorage.setItem("userProfile", JSON.stringify(userProfile));
-            
-            // Save market-specific preferences
-            if (market === "India" || market === "Both") {
-              localStorage.setItem("alertPreferencesIndia", JSON.stringify(strategies));
-            }
-            if (market === "US" || market === "Both") {
-              localStorage.setItem("alertPreferencesUS", JSON.stringify(strategies));
-            }
-            
-            // Save selected market globally for easy access
-            localStorage.setItem("selectedMarket", market);
-            localStorage.setItem("selectedStrategies", JSON.stringify(strategies));
-            
-            // Save authentication token if provided
-            if (data.token) {
-              localStorage.setItem("authToken", data.token);
-              localStorage.setItem("userEmail", form.email);
-            }
-
-            // Store user's name for welcome message
-            const fullName = `${form.firstName} ${form.lastName}`;
-            localStorage.setItem("userName", fullName);
-            setUserName(fullName);
-            
-            // Show welcome message
-            setShowWelcome(true);
-            
-            // Set a flag to show welcome message on home page if needed
-            sessionStorage.setItem("firstTimeUser", "true");
-            
-            success = true;
-            break;
-          } else {
-            lastError = data.message || "Failed to save preferences.";
-          }
-        } catch (err: any) {
-          console.error(`Preferences attempt ${i + 1} failed:`, err.message);
-          
-          if (err.response) {
-            if (err.response.status === 422) {
-              lastError = parseValidationErrors(err.response.data);
-            } else {
-              lastError = err.response.data?.message || 
-                         err.response.data?.error || 
-                         `Server error: ${err.response.status}`;
-            }
-          } else if (err.request) {
-            lastError = "Network error. Please check your connection.";
-          } else {
-            lastError = "An unexpected error occurred.";
-          }
+        if (result.success) {
+          const data = result.data;
+          console.log("Preferences saved to API successfully:", data);
         }
       }
 
-      if (!success) {
-        setApiError(lastError || "Failed to save preferences with all attempted formats.");
-        
-        // Fallback: Save locally if API fails
-        console.log("API failed, saving locally as fallback...");
-        const userProfile = {
-          ...form,
-          selectedMarket: market,
-          selectedStrategies: strategies,
-          selectedMarkets: market === "Both" ? ["india", "us"] : 
-                          market === "India" ? ["india"] : ["us"],
-          registeredAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        };
-
-        localStorage.setItem("userProfile", JSON.stringify(userProfile));
-        localStorage.setItem("selectedMarket", market);
-        localStorage.setItem("selectedStrategies", JSON.stringify(strategies));
-        
-        // Store user's name
-        const fullName = `${form.firstName} ${form.lastName}`;
-        localStorage.setItem("userName", fullName);
-        setUserName(fullName);
-        
-        // Show welcome message
-        setShowWelcome(true);
-        sessionStorage.setItem("firstTimeUser", "true");
+      // Always save locally (even if API fails)
+      saveDataLocally(completeUserData);
+      
+      // Store auth token permanently
+      if (token) {
+        localStorage.setItem("authToken", token);
+        localStorage.setItem("userPlan", "premium");
+        localStorage.setItem("registrationComplete", "true");
       }
 
-    } catch (error: any) {
-      console.error("Unexpected error in handleSubmit:", error);
-      setApiError("An unexpected error occurred. Please try again.");
+      console.log("Registration and preferences saved successfully!");
+      
+    } catch (err: any) {
+      console.error("Preferences error:", err);
+      
+      // Save locally as fallback even if API fails
+      const completeUserData = {
+        user_id: userId,
+        first_name: form.firstName.trim(),
+        last_name: form.lastName.trim(),
+        email: form.email.trim().toLowerCase(),
+        country: form.country.trim(),
+        created_at: new Date().toISOString(),
+        preferences: {
+          market: market,
+          strategies: strategies,
+          updated_at: new Date().toISOString()
+        },
+        terms_accepted: {
+          agreed: true,
+          accepted_date: new Date().toISOString(),
+          terms_version: "1.0"
+        }
+      };
+      
+      setApiError("Could not save to server. Saved locally instead.");
+      saveDataLocally(completeUserData);
+      
+      // Store auth token if available
+      if (registrationToken) {
+        localStorage.setItem("authToken", registrationToken);
+        localStorage.setItem("userPlan", "premium");
+        localStorage.setItem("registrationComplete", "true");
+      }
+      
     } finally {
       setIsSubmitting(false);
     }
@@ -554,6 +760,109 @@ const Registration = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white">
       <Navbar />
+
+      {/* ================= TERMS & CONDITIONS MODAL ================= */}
+      {showTermsModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/95 backdrop-blur-sm">
+          <div className="w-full max-w-4xl max-h-[90vh] bg-gradient-to-br from-slate-800 to-slate-900 border border-cyan-500/40 rounded-2xl p-6 shadow-2xl mx-4 flex flex-col">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between mb-4 pb-4 border-b border-slate-700">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-r from-cyan-500 to-blue-500 flex items-center justify-center">
+                  <AlertCircle className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold text-white">Terms & Conditions</h2>
+                  <p className="text-sm text-slate-400">AIFinverse - Last Updated</p>
+                </div>
+              </div>
+              <button
+                onClick={handleDisagreeToTerms}
+                className="p-2 hover:bg-slate-700 rounded-lg transition"
+              >
+                <X className="w-5 h-5 text-slate-400" />
+              </button>
+            </div>
+
+            {/* Terms Content */}
+            <div className="flex-1 overflow-y-auto pr-2 mb-4">
+              <div className="space-y-4">
+                <div className="p-4 bg-slate-800/50 rounded-xl mb-4">
+                  <div className="flex items-center space-x-2 mb-2">
+                    <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                    <p className="text-sm font-medium text-red-400">IMPORTANT NOTICE</p>
+                  </div>
+                  <p className="text-slate-300 text-sm">
+                    This is a legally binding agreement. By clicking "I Agree", you accept all terms below.
+                    If you do not agree, you cannot use AIFinverse.
+                  </p>
+                </div>
+
+                {termsAndConditions.map((term, index) => (
+                  <div key={index} className="bg-slate-800/30 rounded-xl p-4">
+                    <h3 className="text-lg font-semibold text-cyan-300 mb-2">{term.title}</h3>
+                    <p className="text-slate-300 text-sm whitespace-pre-line">{term.content}</p>
+                  </div>
+                ))}
+
+                {/* Agreement Checkbox */}
+                <div className="sticky bottom-0 bg-slate-800/90 backdrop-blur-sm p-4 rounded-xl border border-slate-700 mt-4">
+                  <div className="flex items-start space-x-3">
+                    <div className="flex items-center h-6">
+                      <input
+                        type="checkbox"
+                        id="agree-terms"
+                        checked={hasAgreedToTerms}
+                        onChange={(e) => {
+                          setHasAgreedToTerms(e.target.checked);
+                          setTermsError("");
+                        }}
+                        className="w-5 h-5 rounded border-2 border-slate-600 bg-slate-800 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <label htmlFor="agree-terms" className="text-white font-medium cursor-pointer">
+                        I have read, understood, and agree to all terms & conditions
+                      </label>
+                      <p className="text-slate-400 text-sm mt-1">
+                        You must check this box to complete your registration
+                      </p>
+                      {termsError && (
+                        <p className="text-red-400 text-sm mt-2">{termsError}</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Footer - Action Buttons */}
+            <div className="flex space-x-3 pt-4 border-t border-slate-700">
+              <Button
+                onClick={handleDisagreeToTerms}
+                variant="outline"
+                className="flex-1 border-red-500/50 text-red-400 hover:bg-red-500/10 hover:text-red-300 py-3"
+              >
+                I Disagree - Cancel Registration
+              </Button>
+              <Button
+                onClick={handleAgreeToTerms}
+                disabled={isSubmitting}
+                className="flex-1 bg-gradient-to-r from-green-500 to-emerald-500 text-white font-semibold py-3 hover:from-green-600 hover:to-emerald-600 disabled:opacity-50"
+              >
+                {isSubmitting ? (
+                  <span className="flex items-center justify-center">
+                    <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                    Processing...
+                  </span>
+                ) : (
+                  "I Agree - Complete Registration"
+                )}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ================= WELCOME MESSAGE ================= */}
       {showWelcome && (
@@ -583,6 +892,9 @@ const Registration = () => {
               <div className="bg-slate-800/50 rounded-xl p-4 mb-6">
                 <p className="text-slate-300 mb-2">
                   ✅ Account created successfully
+                </p>
+                <p className="text-slate-300 mb-2">
+                  ✅ Terms & Conditions accepted
                 </p>
                 <p className="text-slate-300 mb-2">
                   ✅ {market} market selected
@@ -635,9 +947,9 @@ const Registration = () => {
                 <div className="flex-shrink-0 text-red-400 mr-3 mt-0.5">⚠️</div>
                 <div className="flex-1">
                   <p className="text-red-300 text-sm whitespace-pre-line">{apiError}</p>
-                  <p className="text-red-400/70 text-xs mt-2">
-                    Tip: Check that all fields are filled correctly. The server might expect different field names.
-                  </p>
+                  {termsError && (
+                    <p className="text-red-400/70 text-xs mt-2">{termsError}</p>
+                  )}
                 </div>
               </div>
             </div>
@@ -880,90 +1192,146 @@ const Registration = () => {
               </div>
 
               {/* Alert Strategy Selection */}
-              {market && (
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-semibold text-white">
-                      Choose Alert Types <span className="text-red-400">*</span>
-                    </h3>
-                    <button
-                      type="button"
-                      onClick={handleSelectAll}
-                      className="text-sm text-cyan-400 hover:text-cyan-300 transition"
-                    >
-                      {isAllSelected ? "Deselect All" : "Select All"}
-                    </button>
-                  </div>
-                  
-                  <p className="text-slate-400 text-sm">
-                    Select alert types you want to receive for {market} market
-                  </p>
+{market && (
+  <div className="space-y-4">
+    <div className="flex items-center justify-between">
+      <h3 className="text-lg font-semibold text-white">
+        Choose Alert Types <span className="text-red-400">*</span>
+      </h3>
+      <button
+        type="button"
+        onClick={handleSelectAll}
+        className="text-sm text-cyan-400 hover:text-cyan-300 transition"
+      >
+        {isAllSelected ? "Deselect All" : "Select All"}
+      </button>
+    </div>
+    
+    <p className="text-slate-400 text-sm">
+      Select alert types you want to receive for {market} market
+    </p>
 
-                  <div className="space-y-3">
-                    {alertTypes.map((type) => (
-                      <div
-                        key={type}
-                        onClick={() => toggleStrategy(type)}
-                        className={`p-4 rounded-xl border cursor-pointer transition-all duration-300 flex items-center space-x-4 ${
-                          strategies.includes(type)
-                            ? "border-cyan-500 bg-cyan-500/10"
-                            : "border-slate-700 bg-slate-900/50 hover:bg-slate-800/50"
-                        }`}
-                      >
-                        <div className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
-                          strategies.includes(type)
-                            ? "border-cyan-500 bg-cyan-500"
-                            : "border-slate-500"
-                        }`}>
-                          {strategies.includes(type) && (
-                            <div className="w-2 h-2 bg-white rounded-sm" />
-                          )}
-                        </div>
-                        <span className={`font-medium ${
-                          strategies.includes(type) ? "text-cyan-300" : "text-slate-300"
-                        }`}>
-                          {type}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Selected Summary */}
-                  {strategies.length > 0 && (
-                    <div className="text-center py-3 bg-slate-900/30 rounded-xl">
-                      <p className="text-cyan-400 font-medium">
-                        {strategies.length} alert type(s) selected for {market} market
-                      </p>
-                    </div>
-                  )}
-
-                  {/* Action Buttons */}
-                  <div className="space-y-3 pt-4">
-                    <Button
-                      onClick={handleSubmit}
-                      disabled={isSubmitting || strategies.length === 0}
-                      className="w-full bg-gradient-to-r from-green-500 to-emerald-500 text-white font-semibold py-3 rounded-xl hover:from-green-600 hover:to-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 transform hover:-translate-y-0.5 active:translate-y-0"
-                    >
-                      {isSubmitting ? (
-                        <span className="flex items-center justify-center">
-                          <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
-                          Saving Preferences...
-                        </span>
-                      ) : (
-                        "Complete Registration"
-                      )}
-                    </Button>
-
-                    <Button
-                      onClick={handleBack}
-                      variant="outline"
-                      className="w-full border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white py-3 rounded-xl transition"
-                    >
-                      Back to Account Details
-                    </Button>
-                  </div>
-                </div>
+    <div className="space-y-3">
+      {alertTypes.map((type) => (
+        <div
+          key={type}
+          className="relative"
+          onMouseEnter={() => handleStrategyMouseEnter(type)}
+          onMouseLeave={handleStrategyMouseLeave}
+        >
+          <div
+            onClick={() => toggleStrategy(type)}
+            className={`p-4 rounded-xl border cursor-pointer transition-all duration-300 flex items-center space-x-4 ${
+              strategies.includes(type)
+                ? "border-cyan-500 bg-cyan-500/10"
+                : "border-slate-700 bg-slate-900/50 hover:bg-slate-800/50"
+            }`}
+          >
+            <div className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
+              strategies.includes(type)
+                ? "border-cyan-500 bg-cyan-500"
+                : "border-slate-500"
+            }`}>
+              {strategies.includes(type) && (
+                <div className="w-2 h-2 bg-white rounded-sm" />
               )}
+            </div>
+            <div className="flex-1 flex items-center justify-between">
+              <span className={`font-medium ${
+                strategies.includes(type) ? "text-cyan-300" : "text-slate-300"
+              }`}>
+                {type}
+              </span>
+              
+              {/* Strategy Info Message - Shows beside strategy name */}
+              {/* Strategy Info Message */}
+{hoveredStrategy === type && (
+  <div 
+    className="ml-4 p-4 bg-slate-800/95 border border-cyan-500/40 rounded-xl animate-in fade-in slide-in-from-right-2 duration-200 flex-shrink-0 max-w-xs shadow-xl"
+    onMouseEnter={() => setHoveredStrategy(type)}
+    onMouseLeave={handleStrategyMouseLeave}
+  >
+    <div className="space-y-3">
+      {/* Description Section */}
+      <div>
+        <div className="flex items-center space-x-2 mb-2">
+          <div className="w-2 h-2 bg-cyan-500 rounded-full"></div>
+          <p className="text-xs font-semibold text-cyan-300 uppercase tracking-wide">
+            Description
+          </p>
+        </div>
+        <p className="text-xs text-slate-300 leading-relaxed">
+          {strategyInfo[type]?.description}
+        </p>
+      </div>
+      
+      {/* Divider */}
+      <div className="border-t border-slate-700/50"></div>
+      
+      {/* Frequency Section */}
+      <div>
+        <div className="flex items-center space-x-2 mb-2">
+          <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
+          <p className="text-xs font-semibold text-emerald-300 uppercase tracking-wide">
+            Frequency
+          </p>
+        </div>
+        <p className="text-xs text-slate-300 leading-relaxed">
+          {strategyInfo[type]?.frequency}
+        </p>
+      </div>
+    </div>
+  </div>
+)}
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+
+    {/* Hover hint */}
+    <div className="text-center py-2">
+      <p className="text-xs text-slate-500 italic">
+        Hover over any strategy to see its description
+      </p>
+    </div>
+
+    {/* Selected Summary */}
+    {strategies.length > 0 && (
+      <div className="text-center py-3 bg-slate-900/30 rounded-xl">
+        <p className="text-cyan-400 font-medium">
+          {strategies.length} alert type(s) selected for {market} market
+        </p>
+      </div>
+    )}
+
+    {/* Action Buttons */}
+    <div className="space-y-3 pt-4">
+      <Button
+        onClick={handleCompleteRegistrationClick}
+        disabled={isSubmitting || strategies.length === 0}
+        className="w-full bg-gradient-to-r from-green-500 to-emerald-500 text-white font-semibold py-3 rounded-xl hover:from-green-600 hover:to-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 transform hover:-translate-y-0.5 active:translate-y-0"
+      >
+        {isSubmitting ? (
+          <span className="flex items-center justify-center">
+            <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+            Processing...
+          </span>
+        ) : (
+          "Complete Registration"
+        )}
+      </Button>
+
+      <Button
+        onClick={handleBack}
+        variant="outline"
+        className="w-full border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white py-3 rounded-xl transition"
+      >
+        Back to Account Details
+      </Button>
+    </div>
+  </div>
+)}
 
               {/* Prompt to select market */}
               {!market && (
@@ -979,7 +1347,7 @@ const Registration = () => {
           {/* Footer */}
           <div className="mt-8 pt-6 border-t border-slate-700">
             <p className="text-center text-slate-500 text-sm">
-              Already have an account?{" "}
+              Already have an account? {" "}
               <button
                 onClick={() => navigate("/")}
                 className="text-cyan-400 hover:text-cyan-300 transition"
