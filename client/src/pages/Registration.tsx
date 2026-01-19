@@ -15,7 +15,6 @@ const alertTypes = [
   "Fundamental Picks (Earnings Season focused)"
 ];
 
-// Replace the strategyDescriptions with this structure
 const strategyInfo: Record<string, { description: string; frequency: string }> = {
   "Momentum Riders (52-week High/Low, All-Time High/Low)": {
     description: "For traders who love to trade stocks at 52 week / all time highs or lows. These alerts come without any buy/sell levels.",
@@ -158,9 +157,9 @@ const Registration = () => {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [isLoadingCountries, setIsLoadingCountries] = useState(false);
   const [registrationToken, setRegistrationToken] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
   const [apiError, setApiError] = useState<string>("");
   const [userDataFromAPI, setUserDataFromAPI] = useState<any>(null);
-  const [userId, setUserId] = useState<string | null>(null);
   
   // New state for welcome message
   const [showWelcome, setShowWelcome] = useState(false);
@@ -170,6 +169,41 @@ const Registration = () => {
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [hasAgreedToTerms, setHasAgreedToTerms] = useState(false);
   const [termsError, setTermsError] = useState("");
+
+  // Debug state changes
+  useEffect(() => {
+    console.log("Registration state updated:", {
+      step,
+      userId,
+      registrationToken: !!registrationToken,
+      market,
+      strategiesCount: strategies.length
+    });
+  }, [step, userId, registrationToken, market, strategies]);
+
+  // Check for existing registration session on mount
+  useEffect(() => {
+    const checkExistingSession = () => {
+      const savedUserId = sessionStorage.getItem("regUserId");
+      const savedToken = sessionStorage.getItem("regToken");
+      const savedEmail = sessionStorage.getItem("regEmail");
+      
+      if (savedUserId && savedToken && savedEmail) {
+        console.log("Found existing registration session:", {
+          userId: savedUserId,
+          hasToken: !!savedToken,
+          email: savedEmail
+        });
+        
+        setUserId(savedUserId);
+        setRegistrationToken(savedToken);
+        setForm(prev => ({ ...prev, email: savedEmail }));
+        setStep(2); // Move to step 2
+      }
+    };
+    
+    checkExistingSession();
+  }, []);
 
   // Validation helpers
   const isValidName = (name: string) => /^[A-Za-z]{2,}$/.test(name.trim());
@@ -313,7 +347,7 @@ const Registration = () => {
     return JSON.stringify(errorData.detail);
   };
 
-  // Step 1 validation and navigation
+  // Step 1 validation and navigation - FIXED: Don't save to localStorage here
   const handleNext = async () => {
     // Clear previous errors
     setApiError("");
@@ -391,11 +425,11 @@ const Registration = () => {
         setUserDataFromAPI(data);
         
         // Extract user_id from the response data
-        const userId = data.user_id || data.id || data.userId || data.data?.user_id;
-        setUserId(userId);
+        const extractedUserId = data.user_id || data.id || data.userId || data.data?.user_id;
+        setUserId(extractedUserId);
         
-        if (userId) {
-          // 🔐 AUTO LOGIN AFTER REGISTER
+        if (extractedUserId) {
+          // 🔐 AUTO LOGIN AFTER REGISTER - BUT DON'T SAVE TO localStorage YET
           try {
             const loginRes = await api.post("/login", {
               email: form.email.trim().toLowerCase(),
@@ -403,22 +437,32 @@ const Registration = () => {
             });
 
             const token = loginRes.data.access_token;
-            
-            // Store token in state for step 2
+
+            // ✅ STORE TOKEN IN STATE AND sessionStorage (persists between steps)
             setRegistrationToken(token);
+            
+            // 🔥 CRITICAL FIX: Save to sessionStorage so it persists
+            sessionStorage.setItem("regToken", token);
+            sessionStorage.setItem("regUserId", extractedUserId);
+            sessionStorage.setItem("regEmail", form.email.trim().toLowerCase());
+            sessionStorage.setItem("regFirstName", form.firstName.trim());
+            sessionStorage.setItem("regLastName", form.lastName.trim());
+            sessionStorage.setItem("regCountry", form.country.trim());
+            
+            console.log("✅ Auto-login successful, token stored in sessionStorage");
             
             // Move to step 2
             setStep(2);
+            console.log("✅ Registration step 1 complete, moving to step 2");
             
-            console.log("Auto-login successful, token saved to state:", token);
           } catch (loginErr: any) {
-            console.error("Auto-login failed:", loginErr);
+            console.error("❌ Auto-login failed:", loginErr);
             // Even if auto-login fails, continue to step 2
             // User can try logging in separately later
             setStep(2);
           }
         } else {
-          console.error("No user_id found in response:", data);
+          console.error("❌ No user_id found in response:", data);
           setApiError("Registration successful but no user ID returned. Please contact support.");
         }
       } else {
@@ -484,11 +528,28 @@ const Registration = () => {
 
   // Handle Complete Registration button click
   const handleCompleteRegistrationClick = () => {
+    console.log("🔘 Complete Registration clicked:", {
+      userId,
+      registrationToken: !!registrationToken,
+      market,
+      strategiesCount: strategies.length
+    });
+    
     if (isSubmitting) return;
     
-    // Check if we have the user ID from step 1
-    if (!userId) {
-      setApiError("Registration session expired. Please start over.");
+    // Get token from state OR sessionStorage (fallback)
+    const token = registrationToken || sessionStorage.getItem("regToken");
+    const currentUserId = userId || sessionStorage.getItem("regUserId");
+    
+    if (!currentUserId) {
+      console.error("❌ No userId found");
+      setApiError("Registration session expired. Please start over from step 1.");
+      return;
+    }
+
+    if (!token) {
+      console.error("❌ No registration token found");
+      setApiError("Authentication token missing. Please start registration over.");
       return;
     }
 
@@ -502,6 +563,8 @@ const Registration = () => {
       return;
     }
 
+    console.log("✅ All validation passed, showing Terms modal");
+    
     // Show terms and conditions modal instead of submitting immediately
     setShowTermsModal(true);
     setTermsError("");
@@ -566,10 +629,10 @@ const Registration = () => {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         
-        console.log(`Success with format ${i + 1}:`, response.data);
+        console.log(`✅ Success with format ${i + 1}:`, response.data);
         return { success: true, data: response.data };
       } catch (err: any) {
-        console.log(`Format ${i + 1} failed:`, err.response?.data || err.message);
+        console.log(`❌ Format ${i + 1} failed:`, err.response?.data || err.message);
         if (i === payloadVariations.length - 1) {
           return { success: false, error: err };
         }
@@ -579,8 +642,13 @@ const Registration = () => {
   };
 
   // Helper function to save data locally with the correct JSON structure
-  const saveDataLocally = (userData: any) => {
-    console.log("Saving data locally...");
+  const saveDataLocally = (userData: any, token: string) => {
+    console.log("💾 Saving data to localStorage...");
+    
+    // ✅ CRITICAL: ONLY SAVE TO localStorage AFTER COMPLETING BOTH STEPS
+    localStorage.setItem("authToken", token);
+    localStorage.setItem("userPlan", "premium");
+    localStorage.setItem("registrationComplete", "true");
     
     // Save the complete data to local storage in exact JSON format
     localStorage.setItem("userData", JSON.stringify(userData, null, 2));
@@ -604,32 +672,21 @@ const Registration = () => {
     const fullName = `${form.firstName} ${form.lastName}`;
     localStorage.setItem("userName", fullName);
     
-    // Store auth token if available
-    if (registrationToken) {
-      localStorage.setItem("authToken", registrationToken);
-      localStorage.setItem("userPlan", "premium"); // Grant premium access
-      localStorage.setItem("registrationComplete", "true");
-    }
+    // Clear sessionStorage after successful registration
+    sessionStorage.removeItem("regToken");
+    sessionStorage.removeItem("regUserId");
+    sessionStorage.removeItem("regEmail");
+    sessionStorage.removeItem("regFirstName");
+    sessionStorage.removeItem("regLastName");
+    sessionStorage.removeItem("regCountry");
     
     setUserName(fullName);
-    
     setShowWelcome(true);
     sessionStorage.setItem("firstTimeUser", "true");
     
-    console.log("Data saved locally successfully!");
-    console.log("Local JSON structure:", JSON.stringify(userData, null, 2));
-
-     // ⭐ ADD THIS LINE ⭐
-  localStorage.setItem("registrationComplete", "true");
-  
-  setUserName(fullName);
-  setShowWelcome(true);
-  
-  console.log("Data saved locally successfully!");
-
+    console.log("✅ Registration fully completed! User now has premium access.");
+    console.log("📁 Local JSON structure:", JSON.stringify(userData, null, 2));
   };
-
- 
 
   // Final submission - Save preferences to API
   const handleSubmit = async () => {
@@ -637,24 +694,52 @@ const Registration = () => {
     setApiError("");
     setShowWelcome(false);
 
-    // 🔐 Check if we have the registration token (from auto-login in step 1)
-    const token = registrationToken;
+    console.log("🚀 handleSubmit called:", {
+      registrationToken: !!registrationToken,
+      userId,
+      market,
+      strategiesCount: strategies.length
+    });
+
+    // 🔐 Get token from state OR sessionStorage (fallback)
+    const token = registrationToken || sessionStorage.getItem("regToken");
+    const currentUserId = userId || sessionStorage.getItem("regUserId");
+    
+    console.log("🔑 Retrieved token:", !!token, "User ID:", currentUserId);
+    
     if (!token) {
-      // Try to get token from localStorage as fallback
-      const storedToken = localStorage.getItem("authToken");
-      if (!storedToken) {
-        setApiError("Authentication token missing. Please login again.");
-        setIsSubmitting(false);
-        return;
-      }
+      console.error("❌ No token found in state or sessionStorage");
+      setApiError("Authentication token missing. Please start registration over.");
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (!currentUserId) {
+      console.error("❌ No userId found");
+      setApiError("Registration session expired. Please start registration over from step 1.");
+      setIsSubmitting(false);
+      return;
+    }
+
+    // Validate required data
+    if (!market) {
+      setApiError("Please select a market");
+      setIsSubmitting(false);
+      return;
+    }
+    
+    if (strategies.length === 0) {
+      setApiError("Please select at least one strategy");
+      setIsSubmitting(false);
+      return;
     }
 
     try {
-      console.log("Saving preferences for user:", userId);
+      console.log("💾 Saving preferences for user:", currentUserId);
 
       // Create the complete user object in your desired JSON format
       const completeUserData = {
-        user_id: userId,
+        user_id: currentUserId,
         first_name: form.firstName.trim(),
         last_name: form.lastName.trim(),
         email: form.email.trim().toLowerCase(),
@@ -672,49 +757,50 @@ const Registration = () => {
         }
       };
 
-      console.log("Complete user data for S3:", JSON.stringify(completeUserData, null, 2));
+      console.log("📦 Complete user data:", JSON.stringify(completeUserData, null, 2));
 
-      // Use the token we have (from state or localStorage)
-      const authToken = token || localStorage.getItem("authToken") || "";
-      
-      if (authToken) {
-        // Try different payload formats to find what works
+      // Try to save preferences to API
+      try {
         const result = await tryAlternativePayloads(
-          authToken, 
-          userId!, 
+          token, 
+          currentUserId, 
           completeUserData, 
           market!, 
           strategies
         );
 
         if (result.success) {
-          const data = result.data;
-          console.log("Preferences saved to API successfully:", data);
+          console.log("✅ Preferences saved to API successfully");
+        } else {
+          console.log("⚠️ API save failed, will save locally");
         }
+      } catch (apiError) {
+        console.log("⚠️ API error, will save locally:", apiError);
       }
 
-      // Always save locally (even if API fails)
-      saveDataLocally(completeUserData);
+      // ✅ CRITICAL: Save to localStorage ONLY NOW (after completing both steps)
+      saveDataLocally(completeUserData, token);
       
-      // Store auth token permanently
-      if (token) {
-        localStorage.setItem("authToken", token);
-        localStorage.setItem("userPlan", "premium");
-        localStorage.setItem("registrationComplete", "true");
-      }
-
-      console.log("Registration and preferences saved successfully!");
+      console.log("🎉 Registration and preferences saved successfully!");
       
     } catch (err: any) {
-      console.error("Preferences error:", err);
+      console.error("❌ Preferences error:", err);
+      
+      // Get form data from sessionStorage if needed
+      const savedFirstName = sessionStorage.getItem("regFirstName") || form.firstName;
+      const savedLastName = sessionStorage.getItem("regLastName") || form.lastName;
+      const savedEmail = sessionStorage.getItem("regEmail") || form.email;
+      const savedCountry = sessionStorage.getItem("regCountry") || form.country;
+      const currentUserId = userId || sessionStorage.getItem("regUserId");
+      const token = registrationToken || sessionStorage.getItem("regToken");
       
       // Save locally as fallback even if API fails
       const completeUserData = {
-        user_id: userId,
-        first_name: form.firstName.trim(),
-        last_name: form.lastName.trim(),
-        email: form.email.trim().toLowerCase(),
-        country: form.country.trim(),
+        user_id: currentUserId,
+        first_name: savedFirstName.trim(),
+        last_name: savedLastName.trim(),
+        email: savedEmail.trim().toLowerCase(),
+        country: savedCountry.trim(),
         created_at: new Date().toISOString(),
         preferences: {
           market: market,
@@ -729,13 +815,13 @@ const Registration = () => {
       };
       
       setApiError("Could not save to server. Saved locally instead.");
-      saveDataLocally(completeUserData);
       
-      // Store auth token if available
-      if (registrationToken) {
-        localStorage.setItem("authToken", registrationToken);
-        localStorage.setItem("userPlan", "premium");
-        localStorage.setItem("registrationComplete", "true");
+      // ✅ STILL SAVE TO localStorage (after completing both steps)
+      if (token) {
+        saveDataLocally(completeUserData, token);
+      } else {
+        console.error("❌ Cannot save locally: No token available");
+        setApiError("Registration failed. Please try again.");
       }
       
     } finally {
@@ -751,7 +837,7 @@ const Registration = () => {
 
   // Handle continue from welcome message
   const handleContinueToHome = () => {
-    console.log("Navigating to home...");
+    console.log("🏠 Navigating to home...");
     navigate("/home");
   };
 
@@ -901,6 +987,9 @@ const Registration = () => {
                 </p>
                 <p className="text-slate-300">
                   ✅ {strategies.length} alert strategy{strategies.length !== 1 ? 'ies' : ''} enabled
+                </p>
+                <p className="text-slate-300 mt-2 font-medium text-green-400">
+                  ✅ Premium access granted!
                 </p>
               </div>
               
@@ -1192,146 +1281,145 @@ const Registration = () => {
               </div>
 
               {/* Alert Strategy Selection */}
-{market && (
-  <div className="space-y-4">
-    <div className="flex items-center justify-between">
-      <h3 className="text-lg font-semibold text-white">
-        Choose Alert Types <span className="text-red-400">*</span>
-      </h3>
-      <button
-        type="button"
-        onClick={handleSelectAll}
-        className="text-sm text-cyan-400 hover:text-cyan-300 transition"
-      >
-        {isAllSelected ? "Deselect All" : "Select All"}
-      </button>
-    </div>
-    
-    <p className="text-slate-400 text-sm">
-      Select alert types you want to receive for {market} market
-    </p>
+              {market && (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-semibold text-white">
+                      Choose Alert Types <span className="text-red-400">*</span>
+                    </h3>
+                    <button
+                      type="button"
+                      onClick={handleSelectAll}
+                      className="text-sm text-cyan-400 hover:text-cyan-300 transition"
+                    >
+                      {isAllSelected ? "Deselect All" : "Select All"}
+                    </button>
+                  </div>
+                  
+                  <p className="text-slate-400 text-sm">
+                    Select alert types you want to receive for {market} market
+                  </p>
 
-    <div className="space-y-3">
-      {alertTypes.map((type) => (
-        <div
-          key={type}
-          className="relative"
-          onMouseEnter={() => handleStrategyMouseEnter(type)}
-          onMouseLeave={handleStrategyMouseLeave}
-        >
-          <div
-            onClick={() => toggleStrategy(type)}
-            className={`p-4 rounded-xl border cursor-pointer transition-all duration-300 flex items-center space-x-4 ${
-              strategies.includes(type)
-                ? "border-cyan-500 bg-cyan-500/10"
-                : "border-slate-700 bg-slate-900/50 hover:bg-slate-800/50"
-            }`}
-          >
-            <div className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
-              strategies.includes(type)
-                ? "border-cyan-500 bg-cyan-500"
-                : "border-slate-500"
-            }`}>
-              {strategies.includes(type) && (
-                <div className="w-2 h-2 bg-white rounded-sm" />
+                  <div className="space-y-3">
+                    {alertTypes.map((type) => (
+                      <div
+                        key={type}
+                        className="relative"
+                        onMouseEnter={() => handleStrategyMouseEnter(type)}
+                        onMouseLeave={handleStrategyMouseLeave}
+                      >
+                        <div
+                          onClick={() => toggleStrategy(type)}
+                          className={`p-4 rounded-xl border cursor-pointer transition-all duration-300 flex items-center space-x-4 ${
+                            strategies.includes(type)
+                              ? "border-cyan-500 bg-cyan-500/10"
+                              : "border-slate-700 bg-slate-900/50 hover:bg-slate-800/50"
+                          }`}
+                        >
+                          <div className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
+                            strategies.includes(type)
+                              ? "border-cyan-500 bg-cyan-500"
+                              : "border-slate-500"
+                          }`}>
+                            {strategies.includes(type) && (
+                              <div className="w-2 h-2 bg-white rounded-sm" />
+                            )}
+                          </div>
+                          <div className="flex-1 flex items-center justify-between">
+                            <span className={`font-medium ${
+                              strategies.includes(type) ? "text-cyan-300" : "text-slate-300"
+                            }`}>
+                              {type}
+                            </span>
+                            
+                            {/* Strategy Info Message - Shows beside strategy name */}
+                            {hoveredStrategy === type && (
+                              <div 
+                                className="ml-4 p-4 bg-slate-800/95 border border-cyan-500/40 rounded-xl animate-in fade-in slide-in-from-right-2 duration-200 flex-shrink-0 max-w-xs shadow-xl"
+                                onMouseEnter={() => setHoveredStrategy(type)}
+                                onMouseLeave={handleStrategyMouseLeave}
+                              >
+                                <div className="space-y-3">
+                                  {/* Description Section */}
+                                  <div>
+                                    <div className="flex items-center space-x-2 mb-2">
+                                      <div className="w-2 h-2 bg-cyan-500 rounded-full"></div>
+                                      <p className="text-xs font-semibold text-cyan-300 uppercase tracking-wide">
+                                        Description
+                                      </p>
+                                    </div>
+                                    <p className="text-xs text-slate-300 leading-relaxed">
+                                      {strategyInfo[type]?.description}
+                                    </p>
+                                  </div>
+                                  
+                                  {/* Divider */}
+                                  <div className="border-t border-slate-700/50"></div>
+                                  
+                                  {/* Frequency Section */}
+                                  <div>
+                                    <div className="flex items-center space-x-2 mb-2">
+                                      <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
+                                      <p className="text-xs font-semibold text-emerald-300 uppercase tracking-wide">
+                                        Frequency
+                                      </p>
+                                    </div>
+                                    <p className="text-xs text-slate-300 leading-relaxed">
+                                      {strategyInfo[type]?.frequency}
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Hover hint */}
+                  <div className="text-center py-2">
+                    <p className="text-xs text-slate-500 italic">
+                      Hover over any strategy to see its description and frequency
+                    </p>
+                  </div>
+
+                  {/* Selected Summary */}
+                  {strategies.length > 0 && (
+                    <div className="text-center py-3 bg-slate-900/30 rounded-xl">
+                      <p className="text-cyan-400 font-medium">
+                        {strategies.length} alert type(s) selected for {market} market
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Action Buttons */}
+                  <div className="space-y-3 pt-4">
+                    <Button
+                      onClick={handleCompleteRegistrationClick}
+                      disabled={isSubmitting || strategies.length === 0}
+                      className="w-full bg-gradient-to-r from-green-500 to-emerald-500 text-white font-semibold py-3 rounded-xl hover:from-green-600 hover:to-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 transform hover:-translate-y-0.5 active:translate-y-0"
+                    >
+                      {isSubmitting ? (
+                        <span className="flex items-center justify-center">
+                          <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                          Processing...
+                        </span>
+                      ) : (
+                        "Complete Registration"
+                      )}
+                    </Button>
+
+                    <Button
+                      onClick={handleBack}
+                      variant="outline"
+                      className="w-full border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white py-3 rounded-xl transition"
+                    >
+                      Back to Account Details
+                    </Button>
+                  </div>
+                </div>
               )}
-            </div>
-            <div className="flex-1 flex items-center justify-between">
-              <span className={`font-medium ${
-                strategies.includes(type) ? "text-cyan-300" : "text-slate-300"
-              }`}>
-                {type}
-              </span>
-              
-              {/* Strategy Info Message - Shows beside strategy name */}
-              {/* Strategy Info Message */}
-{hoveredStrategy === type && (
-  <div 
-    className="ml-4 p-4 bg-slate-800/95 border border-cyan-500/40 rounded-xl animate-in fade-in slide-in-from-right-2 duration-200 flex-shrink-0 max-w-xs shadow-xl"
-    onMouseEnter={() => setHoveredStrategy(type)}
-    onMouseLeave={handleStrategyMouseLeave}
-  >
-    <div className="space-y-3">
-      {/* Description Section */}
-      <div>
-        <div className="flex items-center space-x-2 mb-2">
-          <div className="w-2 h-2 bg-cyan-500 rounded-full"></div>
-          <p className="text-xs font-semibold text-cyan-300 uppercase tracking-wide">
-            Description
-          </p>
-        </div>
-        <p className="text-xs text-slate-300 leading-relaxed">
-          {strategyInfo[type]?.description}
-        </p>
-      </div>
-      
-      {/* Divider */}
-      <div className="border-t border-slate-700/50"></div>
-      
-      {/* Frequency Section */}
-      <div>
-        <div className="flex items-center space-x-2 mb-2">
-          <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
-          <p className="text-xs font-semibold text-emerald-300 uppercase tracking-wide">
-            Frequency
-          </p>
-        </div>
-        <p className="text-xs text-slate-300 leading-relaxed">
-          {strategyInfo[type]?.frequency}
-        </p>
-      </div>
-    </div>
-  </div>
-)}
-            </div>
-          </div>
-        </div>
-      ))}
-    </div>
-
-    {/* Hover hint */}
-    <div className="text-center py-2">
-      <p className="text-xs text-slate-500 italic">
-        Hover over any strategy to see its description
-      </p>
-    </div>
-
-    {/* Selected Summary */}
-    {strategies.length > 0 && (
-      <div className="text-center py-3 bg-slate-900/30 rounded-xl">
-        <p className="text-cyan-400 font-medium">
-          {strategies.length} alert type(s) selected for {market} market
-        </p>
-      </div>
-    )}
-
-    {/* Action Buttons */}
-    <div className="space-y-3 pt-4">
-      <Button
-        onClick={handleCompleteRegistrationClick}
-        disabled={isSubmitting || strategies.length === 0}
-        className="w-full bg-gradient-to-r from-green-500 to-emerald-500 text-white font-semibold py-3 rounded-xl hover:from-green-600 hover:to-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 transform hover:-translate-y-0.5 active:translate-y-0"
-      >
-        {isSubmitting ? (
-          <span className="flex items-center justify-center">
-            <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
-            Processing...
-          </span>
-        ) : (
-          "Complete Registration"
-        )}
-      </Button>
-
-      <Button
-        onClick={handleBack}
-        variant="outline"
-        className="w-full border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white py-3 rounded-xl transition"
-      >
-        Back to Account Details
-      </Button>
-    </div>
-  </div>
-)}
 
               {/* Prompt to select market */}
               {!market && (
